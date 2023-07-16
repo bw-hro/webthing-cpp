@@ -1,0 +1,11 @@
+{
+    "name": "webthing-cpp",
+    "version-string": "1.0",
+    "dependencies": [
+      "catch2",
+      "json-schema-validator",
+      "mdns",
+      "nlohmann-json",
+      "uwebsockets"
+    ]
+}

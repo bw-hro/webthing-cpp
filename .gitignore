@@ -1,0 +1,6 @@
+build/
+lib/
+tools/vcpkg/
+tools/webthing-tester/
+.vscode/
+todo.md
