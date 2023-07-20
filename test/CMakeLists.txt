@@ -22,10 +22,7 @@ target_link_libraries(tests PRIVATE nlohmann_json::nlohmann_json)
 target_link_libraries(tests PRIVATE nlohmann_json_schema_validator)
 target_link_libraries(tests PRIVATE ${LIBUSOCKETS_STATIC})
 target_link_libraries(tests PRIVATE ZLIB::ZLIB)
-
-IF(WIN32)
-    target_link_libraries(tests PRIVATE uv_a)
-ENDIF(WIN32)
+target_link_libraries(tests PRIVATE $<IF:$<TARGET_EXISTS:libuv::uv_a>,libuv::uv_a,libuv::uv>)
 
 IF(WT_WITH_SSL)
     target_link_libraries(tests PRIVATE OpenSSL::SSL OpenSSL::Crypto)

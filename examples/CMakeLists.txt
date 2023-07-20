@@ -3,6 +3,7 @@ set(LIBS_FOR_EXAMPLES
     nlohmann_json::nlohmann_json
     nlohmann_json_schema_validator
     ZLIB::ZLIB
+    $<IF:$<TARGET_EXISTS:libuv::uv_a>,libuv::uv_a,libuv::uv>
 )
 
 set(INCLUDES_FOR_EXAMPLES ../include ${UWEBSOCKETS_INCLUDE_DIRS} ${MDNS_INCLUDE_DIRS})
@@ -17,10 +18,6 @@ function(create_example_binary cpp_file)
 
     target_include_directories("${target}" PRIVATE ${INCLUDES_FOR_EXAMPLES})
     target_link_libraries("${target}" PRIVATE ${LIBS_FOR_EXAMPLES})
-
-    IF(WIN32)
-        target_link_libraries("${target}" PRIVATE uv_a)
-    ENDIF(WIN32)
     
     IF(WT_WITH_SSL)
         target_link_libraries("${target}" PRIVATE OpenSSL::SSL OpenSSL::Crypto)
