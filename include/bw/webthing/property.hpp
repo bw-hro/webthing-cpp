@@ -23,24 +23,22 @@ json property_status_message(const Property<T>& property)
     });
 }
 
-
 template<class T>
 json property_value_object(const Property<T>& property)
 {
-
     auto value_as_json = property.get_value() ? json(*property.get_value()) : json();
     return json({{property.get_name(), value_as_json}});
 }
-
 
 class PropertyBase
 {
 public:
 
-	PropertyBase(std::string name, json metadata)
+    PropertyBase(std::string name, json metadata, bool wraps_double)
         : name(name)
         , metadata(metadata)
-	{
+        , wraps_double(wraps_double)
+    {
         if(this->metadata.type() != json::value_t::object)
             throw PropertyError("Only json::object is allowed as meta data.");
 
@@ -74,8 +72,8 @@ public:
 
     std::string get_name() const
     {
-		return name;
-	}
+        return name;
+    }
 
     json get_metadata() const
     {
@@ -90,6 +88,9 @@ public:
     template<class T> void set_value(T value)
     {
         try{
+           if(wraps_double && !std::is_same_v<T, double>)
+               return set_value(try_static_cast<double>(value));
+
             auto property = dynamic_cast<Property<T>&>(*this);
             property.set_value(value);
         }
@@ -100,10 +101,11 @@ public:
     }
 
 protected:
-	std::string name;
+    std::string name;
     std::string href_prefix;
     std::string href;
     json metadata;
+    const bool wraps_double;
 };
 
 typedef std::function<void (json)> PropertyChangedCallback;
@@ -112,16 +114,15 @@ template<class T>
 class Property : public PropertyBase
 {
 public:
-	
-	Property(PropertyChangedCallback changed_callback, std::string name, std::shared_ptr<Value<T>> value, json metadata = json::object())
-		: PropertyBase(name, metadata)
+    Property(PropertyChangedCallback changed_callback, std::string name, std::shared_ptr<Value<T>> value, json metadata = json::object())
+        : PropertyBase(name, metadata, std::is_same_v<T, double>)
         , property_change_callback(changed_callback)
         , value(value)
-	{
+    {
         // Add value change observer to notify the Thing about a property change.
         if(property_change_callback)
             this->value->add_observer([&](auto v){property_change_callback(property_status_message(*this));});
-	}
+    }
 
     // Validate new proptery value before setting it.
     void validate_value(const T& value) const
@@ -164,7 +165,7 @@ public:
     }
 
 private:
-	std::shared_ptr<Value<T>> value;
+    std::shared_ptr<Value<T>> value;
     PropertyChangedCallback property_change_callback;
 };
 
