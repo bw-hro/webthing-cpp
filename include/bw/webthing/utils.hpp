@@ -261,5 +261,19 @@ struct fix_uuid_scoped
 
 #define FIXED_UUID_SCOPED(uuid) auto fixed_uuid_scope_guard = fix_uuid_scoped(uuid);
 
+// try to static_cast from a type to another, throws std::bad_cast on error
+template<class To, class From>
+inline To try_static_cast(const From& value)
+{
+    try
+    {
+        if constexpr (std::is_convertible_v<From, To>)
+            return static_cast<To>(value);
+    }
+    catch(...)
+    {}
+
+    throw std::bad_cast();
+}
 
 } // bw::webthing

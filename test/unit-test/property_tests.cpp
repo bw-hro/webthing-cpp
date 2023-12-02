@@ -116,7 +116,7 @@ TEST_CASE( "Properties can wrap json values", "[property]" )
 
 TEST_CASE( "Properties can only be changed from external when provided values are valid", "[property]" )
 {
-    SECTION( "Number" )
+    SECTION( "Integer" )
     {
         auto val = create_value(666);
         json property_description = {{"type", "integer"}, {"minimum", 555}};
@@ -128,8 +128,32 @@ TEST_CASE( "Properties can only be changed from external when provided values ar
         );
         REQUIRE( *property->get_value<int>() == 666 );
 
+        REQUIRE_THROWS_MATCHES(property->set_value(777.0), PropertyError,
+            MessageContains("value type not matching")
+        );
+        REQUIRE( *property->get_value<int>() == 666 );
+
         property->set_value(1000);
         REQUIRE( *property->get_value<int>() == 1000 );
+    }
+
+    SECTION( "Number" )
+    {
+        auto val = create_value(666.0);
+        json property_description = {{"type", "number"}, {"minimum", 555.0}};
+        auto property = create_proptery("writeable-number-prop", val, property_description);
+
+        REQUIRE_THROWS_MATCHES(property->set_value(123.0), PropertyError,
+            MessageContains("Invalid property") &&
+            MessageContains("below minimum of 555")
+        );
+        REQUIRE( *property->get_value<double>() == 666 );
+
+        property->set_value(1000.123);
+        REQUIRE( *property->get_value<double>() == 1000.123 );
+
+        property->set_value(777);
+        REQUIRE( *property->get_value<double>() == 777 );
     }
 
     SECTION( "String" )

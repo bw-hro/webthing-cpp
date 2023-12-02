@@ -1,6 +1,6 @@
 {
     "name": "webthing-cpp",
-    "version-string": "1.0",
+    "version-string": "1.0.2",
     "dependencies": [
       "catch2",
       "json-schema-validator",
