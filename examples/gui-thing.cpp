@@ -218,8 +218,7 @@ int main()
 
     auto web = server.get_web_server();
     web->get("/gui", [&](auto res, auto req){
-        res->writeHeader("Content-Type", "text/html; charset=utf-8");
-        res->end(gui_html);
+        WebThingServer::Response(req, res).html(gui_html).end();
     });
 
     server.start();

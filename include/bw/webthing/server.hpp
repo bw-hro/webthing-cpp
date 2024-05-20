@@ -15,11 +15,23 @@ namespace bw::webthing {
 
 typedef uWS::SocketContextOptions SSLOptions;
 
+constexpr bool is_ssl_enabled()
+{
+#ifdef WT_WITH_SSL
+    return true;
+#else
+    return false;
+#endif
+}
+
 #ifdef WT_WITH_SSL
     typedef uWS::SSLApp uWebsocketsApp;
 #else
     typedef uWS::App uWebsocketsApp;
 #endif
+
+typedef uWS::HttpResponse<is_ssl_enabled()> uwsHttpResponse;
+
 
 enum class ThingType { SingleThing, MultipleThings };
 
@@ -120,6 +132,11 @@ class WebThingServer
             return *this;
         }
 
+        Builder& limit_memory()
+        {
+            return *this;
+        }
+
         WebThingServer build()
         {
             return WebThingServer(things_, port_, hostname_, base_path_, 
@@ -140,6 +157,117 @@ class WebThingServer
         bool disable_host_validation_ = false;
         bool mdns_enabled_ = true;
 
+    };
+
+public:
+    struct Response
+    {
+        Response(uWS::HttpRequest* req, uwsHttpResponse* res)
+            : req_(req)
+            , res_(res)
+        {}
+        
+        Response& status(std::string_view status)
+        {
+            status_ = status;
+            return *this;
+        }
+
+        Response& bad_request()
+        {
+            return status("400 Bad Request");
+        }
+
+        Response& forbidden()
+        {
+            return status("403 Forbidden");
+        }
+
+        Response& not_found()
+        {
+            return status("404 Not Found");
+        }
+
+        Response& method_not_allowed()
+        {
+            return status("405 Method Not Allowed");
+        }
+
+        Response& moved_permanently()
+        {
+            return status("301 Moved Permanently");
+        }
+
+        Response& no_content()
+        {
+            return status("204 No Content");
+        }
+
+        Response& created()
+        {
+            return status("201 Created");
+        }
+
+        Response& header(std::string_view key, std::string_view value)
+        {
+            headers_[key] = value;
+            return *this;
+        }
+
+        Response& cors()
+        {
+            header("Access-Control-Allow-Origin", "*");
+            header("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept, Authorization");
+            header("Access-Control-Allow-Methods", "GET, HEAD, PUT, POST, DELETE");
+            return *this;
+        }
+
+        Response& json(std::string_view body)
+        {
+            header("Content-Type", "application/json");
+            body_ = body;
+            return *this;
+        }
+
+        Response& html(std::string_view body)
+        {
+            header("Content-Type", "text/html; charset=utf-8");
+            body_ = body;
+            return *this;
+        }
+
+
+        void end()
+        {
+            cors();
+
+            res_->writeStatus(status_);
+            for(const auto& kv : headers_)
+            {
+                res_->writeHeader(kv.first, kv.second);
+            }
+            res_->end(body_);
+
+            if(logger::get_level() == log_level::trace)
+            {
+                std::stringstream ss;
+                ss << "http - '" << res_->getRemoteAddressAsText() << "'";
+                ss << " '" << req_->getCaseSensitiveMethod();
+                ss << " " << req_->getFullUrl() << " HTTP/1.1'";
+                ss << " '" << status_ << "'";
+                ss << " " << body_.size() * sizeof(char) << "B";
+                ss << " '" << req_->getHeader("host") << "'";
+                ss << " '" << req_->getHeader("user-agent") << "'";
+                logger::trace(ss.str());
+            }
+        }
+
+    private:
+        uWS::HttpRequest* req_;
+        uwsHttpResponse* res_;
+        std::string_view status_ = uWS::HTTP_200_OK;
+        std::string_view body_ = {};
+        std::map<std::string_view, std::string_view> headers_;
     };
 
 public:
@@ -205,41 +333,45 @@ public:
             });
         }
         
+        #define CREATE_HANDLER(handler_function) [&](auto* res, auto* req) { \
+            delegate_request(res, req, [&](auto* rs, auto* rq) { handler_function(rs, rq); }); \
+        }   
+
         if(is_single)
         {
-            server.get(base_path + "/", [&](auto* res, auto* req){handle_thing(res, req);});
-            server.get(base_path + "/properties", [&](auto* res, auto* req){handle_properties(res, req);});
-            server.get(base_path + "/properties/:property_name", [&](auto* res, auto* req){handle_property_get(res, req);});
-            server.put(base_path + "/properties/:property_name", [&](auto* res, auto* req){handle_property_put(res, req);});
-            server.get(base_path + "/actions", [&](auto* res, auto* req){handle_actions_get(res, req);});
-            server.post(base_path + "/actions", [&](auto* res, auto* req){handle_actions_post(res, req);});
-            server.get(base_path + "/actions/:action_name", [&](auto* res, auto* req){handle_actions_get(res, req);});
-            server.post(base_path + "/actions/:action_name", [&](auto* res, auto* req){handle_actions_post(res, req);});
-            server.get(base_path + "/actions/:action_name/:action_id", [&](auto* res, auto* req){handle_action_id_get(res, req);});
-            server.put(base_path + "/actions/:action_name/:action_id", [&](auto* res, auto* req){handle_action_id_put(res, req);});
-            server.del(base_path + "/actions/:action_name/:action_id", [&](auto* res, auto* req){handle_action_id_delete(res, req);});
-            server.get(base_path + "/events", [&](auto* res, auto* req){handle_events(res, req);});
-            server.get(base_path + "/events/:event_name", [&](auto* res, auto* req){handle_events(res, req);});
+            server.get(base_path + "/", CREATE_HANDLER(handle_thing));
+            server.get(base_path + "/properties", CREATE_HANDLER(handle_properties));
+            server.get(base_path + "/properties/:property_name", CREATE_HANDLER(handle_property_get));
+            server.put(base_path + "/properties/:property_name", CREATE_HANDLER(handle_property_put));
+            server.get(base_path + "/actions", CREATE_HANDLER(handle_actions_get));
+            server.post(base_path + "/actions", CREATE_HANDLER(handle_actions_post));
+            server.get(base_path + "/actions/:action_name", CREATE_HANDLER(handle_actions_get));
+            server.post(base_path + "/actions/:action_name", CREATE_HANDLER(handle_actions_post));
+            server.get(base_path + "/actions/:action_name/:action_id", CREATE_HANDLER(handle_action_id_get));
+            server.put(base_path + "/actions/:action_name/:action_id", CREATE_HANDLER(handle_action_id_put));
+            server.del(base_path + "/actions/:action_name/:action_id", CREATE_HANDLER(handle_action_id_delete));
+            server.get(base_path + "/events", CREATE_HANDLER(handle_events));
+            server.get(base_path + "/events/:event_name", CREATE_HANDLER(handle_events));
         }
         else
         {
-            server.get(base_path + "/", [&](auto* res, auto* req){handle_things(res, req);});
-            server.get(base_path + "/:thing_id", [&](auto* res, auto* req){handle_thing(res, req);});
-            server.get(base_path + "/:thing_id/properties", [&](auto* res, auto* req){handle_properties(res, req);});
-            server.get(base_path + "/:thing_id/properties/:property_name", [&](auto* res, auto* req){handle_property_get(res, req);});
-            server.put(base_path + "/:thing_id/properties/:property_name", [&](auto* res, auto* req){handle_property_put(res, req);});
-            server.get(base_path + "/:thing_id/actions", [&](auto* res, auto* req){handle_actions_get(res, req);});
-            server.post(base_path + "/:thing_id/actions", [&](auto* res, auto* req){handle_actions_post(res, req);});
-            server.get(base_path + "/:thing_id/actions/:action_name", [&](auto* res, auto* req){handle_actions_get(res, req);});
-            server.post(base_path + "/:thing_id/actions/:action_name", [&](auto* res, auto* req){handle_actions_post(res, req);});
-            server.get(base_path + "/:thing_id/actions/:action_name/:action_id", [&](auto* res, auto* req){handle_action_id_get(res, req);});
-            server.put(base_path + "/:thing_id/actions/:action_name/:action_id", [&](auto* res, auto* req){handle_action_id_put(res, req);});
-            server.del(base_path + "/:thing_id/actions/:action_name/:action_id", [&](auto* res, auto* req){handle_action_id_delete(res, req);});
-            server.get(base_path + "/:thing_id/events", [&](auto* res, auto* req){handle_events(res, req);});
-            server.get(base_path + "/:thing_id/events/:event_name", [&](auto* res, auto* req){handle_events(res, req);});
+            server.get(base_path + "/", CREATE_HANDLER(handle_things));
+            server.get(base_path + "/:thing_id", CREATE_HANDLER(handle_thing));
+            server.get(base_path + "/:thing_id/properties", CREATE_HANDLER(handle_properties));
+            server.get(base_path + "/:thing_id/properties/:property_name", CREATE_HANDLER(handle_property_get));
+            server.put(base_path + "/:thing_id/properties/:property_name", CREATE_HANDLER(handle_property_put));
+            server.get(base_path + "/:thing_id/actions", CREATE_HANDLER(handle_actions_get));
+            server.post(base_path + "/:thing_id/actions", CREATE_HANDLER(handle_actions_post));
+            server.get(base_path + "/:thing_id/actions/:action_name", CREATE_HANDLER(handle_actions_get));
+            server.post(base_path + "/:thing_id/actions/:action_name", CREATE_HANDLER(handle_actions_post));
+            server.get(base_path + "/:thing_id/actions/:action_name/:action_id", CREATE_HANDLER(handle_action_id_get));
+            server.put(base_path + "/:thing_id/actions/:action_name/:action_id", CREATE_HANDLER(handle_action_id_put));
+            server.del(base_path + "/:thing_id/actions/:action_name/:action_id", CREATE_HANDLER(handle_action_id_delete));
+            server.get(base_path + "/:thing_id/events", CREATE_HANDLER(handle_events));
+            server.get(base_path + "/:thing_id/events/:event_name", CREATE_HANDLER(handle_events));
         }
-        server.any("/*", [&](auto* res, auto* req){handle_invalid_requests(res, req);});
-        server.options("/*", [&](auto* res, auto* req){handle_options_requests(res, req);});
+        server.any("/*", CREATE_HANDLER(handle_invalid_requests));
+        server.options("/*", CREATE_HANDLER(handle_options_requests));
 
         for(auto& thing : things.get_things())
         {
@@ -251,13 +383,13 @@ public:
                 std::string* ws_id = (std::string *) ws->getUserData();
                 ws_id->append(generate_uuid());
 
-                logger::debug("websocket open " + *ws_id);
+                logger::trace("websocket open " + *ws_id);
                 ws->subscribe(thing_id + "/properties");
                 ws->subscribe(thing_id + "/actions");
             };
             ws_behavior.message = [thing_id, thing](auto *ws, std::string_view message, uWS::OpCode op_code)
             {
-                logger::debug("websocket msg " + *((std::string*)ws->getUserData()) + ": " + std::string(message));
+                logger::trace("websocket msg " + *((std::string*)ws->getUserData()) + ": " + std::string(message));
                 json j;
                 try
                 {
@@ -354,7 +486,7 @@ public:
             };
             ws_behavior.close = [thing_id](auto *ws, int /*code*/, std::string_view /*message*/)
             {
-                logger::debug("websocket close " + *((std::string*)ws->getUserData()));
+                logger::trace("websocket close " + *((std::string*)ws->getUserData()));
                 ws->unsubscribe(thing_id + "/properties");
                 ws->unsubscribe(thing_id + "/actions");
                 ws->unsubscribe(thing_id + "/events/#");
@@ -412,15 +544,9 @@ private:
         std::thread([this]{
 
             logger::info("Start mDNS service for WebThingServer hosting '" + things.get_name() + "'");
-
-            #ifdef WT_WITH_SSL
-                bool is_tls = true;
-            #else
-                bool is_tls = false;
-            #endif
-
+            
             mdns_service = std::make_unique<MdnsService>();
-            mdns_service->start_service(things.get_name(), "_webthing._tcp.local.", port, base_path + "/", is_tls);
+            mdns_service->start_service(things.get_name(), "_webthing._tcp.local.", port, base_path + "/", is_ssl_enabled());
 
             logger::info("Stopped mDNS service for WebThingServer hosting '" + things.get_name() + "'");
   
@@ -502,73 +628,54 @@ private:
     {
         if(disable_host_validation)
             return true;
-        
+
         std::string host(req->getHeader("host"));
         return std::find(hosts.begin(), hosts.end(), host) != hosts.end();
     }
 
-    template<bool SSL>
-    uWS::HttpResponse<SSL>* write_cors_response(uWS::HttpResponse<SSL>* response)
+    void delegate_request(uwsHttpResponse* res, uWS::HttpRequest* req,
+        std::function<void(uwsHttpResponse*, uWS::HttpRequest*)> handler)
     {
-        response->writeHeader("Access-Control-Allow-Origin", "*");
-        response->writeHeader("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept, Authorization");
-        response->writeHeader("Access-Control-Allow-Methods", "GET, HEAD, PUT, POST, DELETE");
-        return response;
-    }
-    
-    template<bool SSL>
-    uWS::HttpResponse<SSL>* write_json_response(uWS::HttpResponse<SSL>* response)
-    {
-        response->writeHeader("Content-Type", "application/json");
-        return response;
+        // pre filter
+        if(!validate_host(req))
+        {
+            Response response(req, res);
+            response.forbidden().end();
+            return;
+        }
+
+        // execute callback
+        handler(res,req);
     }
 
-    template<bool SSL>
-    void handle_invalid_requests(uWS::HttpResponse<SSL>* res, uWS::HttpRequest* req)
+    void handle_invalid_requests(uwsHttpResponse* res, uWS::HttpRequest* req)
     {
+        Response response(req, res);
+
         auto host = req->getHeader("host");
         auto path = req->getUrl();
         
         if(path.back() == '/' && path != (base_path + "/"))
         {
             // redirect to non-trailing slash url
-            res->writeStatus("301 Moved Permanently");
-            res->writeHeader("Location", (SSL ? "https://" : "http://") + std::string(host) + std::string(path.data(), path.size()-1));
-            write_cors_response(res);
-            res->end();
+            auto location = (is_ssl_enabled() ? "https://" : "http://") + std::string(host) + std::string(path.data(), path.size()-1);
+            response.header("Location", location.c_str());
+            response.moved_permanently().end();
+            return;
         }
-        else
-        {
-            res->writeStatus("405 Method Not Allowed");
-            write_cors_response(res);
-            res->end();
-        }
+
+        response.method_not_allowed().end();
     }
 
-    template<bool SSL>
-    void handle_options_requests(uWS::HttpResponse<SSL>* res, uWS::HttpRequest* req)
+    void handle_options_requests(uwsHttpResponse* res, uWS::HttpRequest* req)
     {
-        res->writeStatus("204 No Content");
-        write_cors_response(res);
-        res->end();
+        Response response(req, res);
+        response.no_content().end();
     }
 
-    template<bool SSL>
-    void base_handle_requests(uWS::HttpResponse<SSL>* res, uWS::HttpRequest* req)
-    {
-        if(!validate_host(req))
-        {
-            res->writeStatus("405 Method Not Allowed");
-        }
-
-        write_cors_response(res);
-        write_json_response(res);
-    }
-
-    template<bool SSL>
     json prepare_thing_description(Thing* thing, uWS::HttpRequest* req)
     {
-        std::string http_protocol = SSL ? "https" : "http";
+        std::string http_protocol = is_ssl_enabled() ? "https" : "http";
         std::string ws_protocol = http_protocol == "https" ? "wss" : "ws";
         std::string host = std::string(req->getHeader("host"));
         std::string ws_href = ws_protocol + "://" + host;
@@ -583,61 +690,61 @@ private:
         return desc;
     }
 
-    template<bool SSL>
-    void handle_things(uWS::HttpResponse<SSL>* res, uWS::HttpRequest* req)
+    void handle_things(uwsHttpResponse* res, uWS::HttpRequest* req)
     {
+        Response response(req, res);
+
         json descriptions = json::array();
         
         for(auto thing : things.get_things())
         {
-            json desc = prepare_thing_description<SSL>(thing, req);
+            json desc = prepare_thing_description(thing, req);
             descriptions.push_back(desc);
         }
         
-        base_handle_requests(res, req);
-        res->end(descriptions.dump());
+        response.json(descriptions.dump()).end();
     }
 
-    template<bool SSL>
-    void handle_thing(uWS::HttpResponse<SSL>* res, uWS::HttpRequest* req)
+    void handle_thing(uwsHttpResponse* res, uWS::HttpRequest* req)
     {
+        Response response(req, res);
+
         auto thing = find_thing_from_url(req);
         if(!thing)
         {
-            res->writeStatus("404 Not Found")->end();
+            response.not_found().end();
             return;
         }
 
-        json description = prepare_thing_description<SSL>(*thing, req);
+        json description = prepare_thing_description(*thing, req);
 
-        base_handle_requests(res, req);
-        res->end(description.dump());
+        response.json(description.dump()).end();
     }
 
-
-    template<bool SSL>
-    void handle_properties(uWS::HttpResponse<SSL>* res, uWS::HttpRequest* req)
+    void handle_properties(uwsHttpResponse* res, uWS::HttpRequest* req)
     {
+        Response response(req, res);
+
         auto thing = find_thing_from_url(req);
         if(!thing)
         {
-            res->writeStatus("404 Not Found")->end();
+            response.not_found().end();
             return;
         }
 
-        base_handle_requests(res, req);
-        res->end((*thing)->get_properties().dump());
+        response.json((*thing)->get_properties().dump()).end();
     }
 
-    template<bool SSL>
-    void handle_property_get(uWS::HttpResponse<SSL>* res, uWS::HttpRequest* req)
+    void handle_property_get(uwsHttpResponse* res, uWS::HttpRequest* req)
     {
+        Response response(req, res);
+
         auto thing = find_thing_from_url(req);
         auto property_name = find_property_name_from_url(req);
 
         if(!thing || !property_name)
         {
-            res->writeStatus("404 Not Found")->end();
+            response.not_found().end();
             return;
         }
 
@@ -645,23 +752,23 @@ private:
 
         if(!property)
         {
-            res->writeStatus("404 Not Found")->end();
+            response.not_found().end();
             return;
         }
 
-        base_handle_requests(res, req);
-        res->end(property->get_property_value_object().dump());
+        response.json(property->get_property_value_object().dump()).end();
     }
 
-    template<bool SSL>
-    void handle_property_put(uWS::HttpResponse<SSL>* res, uWS::HttpRequest* req)
+    void handle_property_put(uwsHttpResponse* res, uWS::HttpRequest* req)
     {
+        Response response(req, res);
+
         auto thing = find_thing_from_url(req);
         auto property_name_in_url = find_property_name_from_url(req);
 
         if(!thing || !property_name_in_url)
         {
-            res->writeStatus("404 Not Found")->end();
+            response.not_found().end();
             return;
         }
 
@@ -669,14 +776,16 @@ private:
 
         if(!property)
         {
-            res->writeStatus("404 Not Found")->end();
+            response.not_found().end();
             return;
         }
 
-        res->onData([res, thing, property_name_in_url, property](std::string_view body_chunk, bool is_last)
+        res->onData([res, req, thing, property_name_in_url, property](std::string_view body_chunk, bool is_last)
         {
             if(is_last)
             {
+                Response response(req, res);
+
                 try
                 {
                     if(body_chunk.empty())
@@ -706,12 +815,12 @@ private:
                     else
                         prop_setter(v);
 
-                    res->end(property->get_property_value_object().dump());
+                    response.json(property->get_property_value_object().dump()).end();
                 }
                 catch(std::exception& ex)
                 {
                     json body = {{"message", ex.what()}};
-                    res->writeStatus("400 Bad Request")->end(body.dump());
+                    response.bad_request().json(body.dump()).end();
                 }
             }
         });
@@ -724,43 +833,44 @@ private:
     // Handles GET requests to:
     // * /actions
     // * /actions/<action_name>
-    template<bool SSL>
-    void handle_actions_get(uWS::HttpResponse<SSL>* res, uWS::HttpRequest* req)
+    void handle_actions_get(uwsHttpResponse* res, uWS::HttpRequest* req)
     {
+        Response response(req, res);
+
         auto thing = find_thing_from_url(req);
         if(!thing)
         {
-            res->writeStatus("404 Not Found")->end();
+            response.not_found().end();
             return;
         }
 
         // can be std::nullopt which results in a collection of all actions
         auto action_name = find_action_name_from_url(req);
-
-        base_handle_requests(res, req);
-        res->end((*thing)->get_action_descriptions(action_name).dump());
+        response.json((*thing)->get_action_descriptions(action_name).dump()).end();
     }
 
 
     // Handles POST requests to:
     // * /actions
     // * /actions/<action_name>
-    template<bool SSL>
-    void handle_actions_post(uWS::HttpResponse<SSL>* res, uWS::HttpRequest* req)
+    void handle_actions_post(uwsHttpResponse* res, uWS::HttpRequest* req)
     {
+
         auto thing = find_thing_from_url(req);
         if(!thing)
         {
-            res->writeStatus("404 Not Found")->end();
+            Response(req, res).not_found().end();
             return;
         }
 
         auto action_name_in_url = find_action_name_from_url(req);
 
-        res->onData([res, thing, action_name_in_url](std::string_view body_chunk, bool is_last)
+        res->onData([res, req, thing, action_name_in_url](std::string_view body_chunk, bool is_last)
         {
             if(is_last)
             {
+                Response response(req, res);
+
                 try
                 {
                     if(body_chunk.empty())
@@ -782,19 +892,18 @@ private:
                     if(!action)
                         throw ActionError("Could not perform action");
 
-                    json response = action->as_action_description();
+                    json response_body = action->as_action_description();
                     std::thread action_runner([action]{
                         action->start();
                     });
                     action_runner.detach();
 
-                    res->writeStatus("201 Created")->end(response.dump());
-
+                    response.created().json(response_body.dump()).end();
                 }
                 catch(std::exception& ex)
                 {
                     json body = {{"message", ex.what()}};
-                    res->writeStatus("400 Bad Request")->end(body.dump());
+                    response.bad_request().json(body.dump()).end();
                 }
             }
         });
@@ -805,95 +914,93 @@ private:
 
     }
 
-    template<bool SSL>
-    void handle_action_id_get(uWS::HttpResponse<SSL>* res, uWS::HttpRequest* req)
+    void handle_action_id_get(uwsHttpResponse* res, uWS::HttpRequest* req)
     {
+        Response response(req, res);
+
         auto thing = find_thing_from_url(req);
         auto action_name = find_action_name_from_url(req);
         auto action_id = find_action_id_from_url(req);
 
         if(!thing || !action_name || !action_id)
         {
-            res->writeStatus("404 Not Found")->end();
+            response.not_found().end();
             return;
         }
 
         auto action = (*thing)->get_action(*action_name, *action_id);
         if(!action)
         {
-            res->writeStatus("404 Not Found")->end();
+            response.not_found().end();
             return;
         }
 
-        base_handle_requests(res, req);
-        res->end(action->as_action_description().dump());
+        response.json(action->as_action_description().dump()).end();
     }
 
     // TODO: this is not yet defined in the spec
     // also cf. https://webthings.io/api/#actionrequest-resource
-    template<bool SSL>
-    void handle_action_id_put(uWS::HttpResponse<SSL>* res, uWS::HttpRequest* req)
+    void handle_action_id_put(uwsHttpResponse* res, uWS::HttpRequest* req)
     {
+        Response response(req, res);
+
         auto thing = find_thing_from_url(req);
         if(!thing)
         {
-            res->writeStatus("404 Not Found")->end();
+            response.not_found().end();
             return;
         }
 
-        base_handle_requests(res, req);
-        res->end();
+        response.end();
     }
 
-    template<bool SSL>
-    void handle_action_id_delete(uWS::HttpResponse<SSL>* res, uWS::HttpRequest* req)
+    void handle_action_id_delete(uwsHttpResponse* res, uWS::HttpRequest* req)
     {
+        Response response(req, res);
+
         auto thing = find_thing_from_url(req);
         auto action_name = find_action_name_from_url(req);
         auto action_id = find_action_id_from_url(req);
 
         if(!thing || !action_name || !action_id)
         {
-            res->writeStatus("404 Not Found")->end();
+            response.not_found().end();
             return;
         }
 
         auto action = (*thing)->get_action(*action_name, *action_id);
         if(!action)
         {
-            res->writeStatus("404 Not Found")->end();
+            response.not_found().end();
             return;
         }
 
         if(!(*thing)->remove_action(*action_name, *action_id))
         {
-            res->writeStatus("404 Not Found")->end();
+            response.not_found().end();
             return;
         }
 
-        res->writeStatus("204 No Content");
-        base_handle_requests(res, req);
-        res->end();
+        response.no_content().end();
     }
 
     // Handles requests to:
     // * /events
     // * /events/<event_name>
-    template<bool SSL>
-    void handle_events(uWS::HttpResponse<SSL>* res, uWS::HttpRequest* req)
+    void handle_events(uwsHttpResponse* res, uWS::HttpRequest* req)
     {
+        Response response(req, res);
+
         auto thing = find_thing_from_url(req);
         if(!thing)
         {
-            res->writeStatus("404 Not Found")->end();
+            response.not_found().end();
             return;
         }
 
         // can be std::nullopt which results in a collection of all events
         auto event_name = find_event_name_from_url(req);
-
-        base_handle_requests(res, req);
-        res->end((*thing)->get_event_descriptions(event_name).dump());
+        response.json((*thing)->get_event_descriptions(event_name).dump()).end();
     }
 
     // forward thing messages to servers websocket clients
@@ -906,7 +1013,7 @@ private:
         std::string m = message.dump();
 
         webserver_loop->defer([this, t, m]{
-            logger::debug("server broadcast : " + t + " : " + m);
+            logger::trace("server broadcast : " + t + " : " + m);
             web_server->publish(t, m, uWS::OpCode::TEXT);
         });
     }
