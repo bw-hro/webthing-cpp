@@ -208,6 +208,9 @@ auto make_gui_thing()
 
 int main()
 {
+    logger::set_level(log_level::trace);
+    logger::use_color(true);
+
     auto thing = make_gui_thing();
     auto server = WebThingServer::host(SingleThing(thing.get()))
         .port(8888)

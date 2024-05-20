@@ -10,6 +10,7 @@
 #include <mutex>
 #include <optional>
 #include <random>
+#include <regex>
 #include <sstream>
 #include <thread>
 #include <time.h>
@@ -93,6 +94,7 @@ enum log_level
 struct logger
 {
     typedef std::function<void (log_level, const std::string&)> log_impl;
+    typedef std::function<const char* (log_level)> log_color_mapper;
 
     static void error(const std::string& msg)
     {
@@ -140,20 +142,45 @@ struct logger
         custom_log_level = level;
     }
 
+    static log_level get_level()
+    {
+        return custom_log_level;
+    }
+
+    static void use_color(bool use_color)
+    {
+        log_use_color = use_color;
+    }
+
 private:
     static void default_log_impl(log_level level, const std::string& msg)
     {
-        auto timestamp = details::current_ISO8601_time_local(std::nullopt);
-        auto level_str = level == log_level::error ? "E" : 
-                         level == log_level::warn  ? "W" : 
-                         level == log_level::info  ? "I" : 
-                         level == log_level::debug ? "D" : 
-                         level == log_level::trace ? "T" : 
+        auto timestamp = details::current_ISO8601_time_local();
+        auto level_str = level == log_level::error ? "ERROR" : 
+                         level == log_level::warn  ? "WARN " : 
+                         level == log_level::info  ? "INFO " : 
+                         level == log_level::debug ? "DEBUG" : 
+                         level == log_level::trace ? "TRACE" : 
                          "L:" + std::to_string(level);
 
+        std::string color = log_use_color ? log_level_to_color(level) : "";
+        std::string color_clear = log_use_color ? "\033[0m" : "";
+        std::string dim = log_use_color ? "\x1B[2m" : "";
+        std::string dim_off = log_use_color ? "\x1B[22m" : "";
+        std::string italic = log_use_color ? "\x1B[1;3m" : "";
+
+        timestamp = std::regex_replace(timestamp, std::regex(R"([T])"), " " + dim_off);
+        timestamp = dim + std::regex_replace(timestamp, std::regex{R"([\+])"}, " " + dim + "+");
+
+        // regex for time, ip 4/6, MAC, urls (with ports)
+        auto string_colored = color + std::regex_replace(msg, std::regex{R"("[^"]*"|'[^']*')"}, italic + "$0" + color_clear + color);
+
+        // TODO: make log level configurable for THING (notify e, p, a), WEBSOCKET (in, open, close, broadcast), MDNS, Https (REQ (with/without body), RES)
+
         std::stringstream ss;
-        ss << timestamp << " [" << std::this_thread::get_id() << "] " << level_str << " - " << msg;
-        
+        ss << color << timestamp << " [" << "" << std::this_thread::get_id() << "" << "] " <<
+        dim_off << level_str << dim  << " -- " << dim_off << string_colored << color_clear;
+
         std::lock_guard<std::mutex> lg(logger::log_mutex);
         switch (level)
         {
@@ -166,9 +193,20 @@ private:
         }
     }
 
+    static const char* log_level_to_color(log_level level)
+    {
+        return  level == log_level::error ? "\x1B[91m" : // light red
+                level == log_level::warn  ? "\x1B[33m" : // yellow
+                level == log_level::info  ? "\x1B[32m" : // green
+                level == log_level::debug ? "\x1B[34m" : // blue
+                level == log_level::trace ? "\x1B[90m" : //light gray
+                "";
+    }
+
     static inline std::mutex log_mutex;
     static inline log_impl custom_log_impl;
     static inline log_level custom_log_level = log_level::debug;
+    static inline bool log_use_color = false;
 };
 
 // set a fixed time for timestamp generation
