@@ -173,7 +173,7 @@ private:
         timestamp = dim + std::regex_replace(timestamp, std::regex{R"([\+])"}, " " + dim + "+");
 
         // regex for time, ip 4/6, MAC, urls (with ports)
-        auto string_colored = color + std::regex_replace(msg, std::regex{R"("[^"]*"|'[^']*')"}, italic + "$0" + color_clear + color);
+        auto string_colored =  log_use_color ? (color + std::regex_replace(msg, std::regex{R"("[^"]*"|'[^']*')"}, italic + "$&" + color_clear + color)) : msg;
 
         // TODO: make log level configurable for THING (notify e, p, a), WEBSOCKET (in, open, close, broadcast), MDNS, Https (REQ (with/without body), RES)
 
