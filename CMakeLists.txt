@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.1)
 cmake_policy(SET CMP0091 NEW)
-project(Webthing-CPP VERSION 1.0 DESCRIPTION "Webthing implementation for C++" LANGUAGES CXX)
+project(Webthing-CPP VERSION 1.0.3 DESCRIPTION "Webthing implementation for C++" LANGUAGES CXX)
 set(CMAKE_CXX_STANDARD 17)
 
 IF(WIN32)
