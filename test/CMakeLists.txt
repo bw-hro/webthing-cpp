@@ -8,6 +8,7 @@ add_executable(tests
     "unit-test/server_tests.cpp"
     "unit-test/thing_tests.cpp"
     "unit-test/utils_tests.cpp"
+    "unit-test/value_tests.cpp"
     "unit-test/webthing_tests.cpp"
 )
 
@@ -15,7 +16,7 @@ set_property(TARGET tests PROPERTY
              MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>")
 
 set(INCLUDES_FOR_TESTS ../include ${UWEBSOCKETS_INCLUDE_DIRS} ${MDNS_INCLUDE_DIRS})
-
+target_compile_definitions(tests PRIVATE CATCH_CONFIG_ENABLE_ALL_STRINGMAKERS)
 target_include_directories(tests PRIVATE ${INCLUDES_FOR_TESTS})
 target_link_libraries(tests PRIVATE Catch2::Catch2WithMain)
 target_link_libraries(tests PRIVATE nlohmann_json::nlohmann_json)
