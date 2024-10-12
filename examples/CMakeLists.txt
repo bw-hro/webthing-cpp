@@ -1,7 +1,7 @@
 set(LIBS_FOR_EXAMPLES 
     ${LIBUSOCKETS_STATIC}
     nlohmann_json::nlohmann_json
-    nlohmann_json_schema_validator
+    nlohmann_json_schema_validator::validator
     ZLIB::ZLIB
     $<IF:$<TARGET_EXISTS:libuv::uv_a>,libuv::uv_a,libuv::uv>
 )
