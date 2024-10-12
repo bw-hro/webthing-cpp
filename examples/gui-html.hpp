@@ -1,5 +1,5 @@
 // Webthing-CPP
-// SPDX-FileCopyrightText: 2023 Benno Waldhauer
+// SPDX-FileCopyrightText: 2023-2024 Benno Waldhauer
 // SPDX-License-Identifier: MIT
 
 #pragma once
@@ -224,7 +224,8 @@ constexpr char gui_html[] = R"""(
                 console.log('Welcome to SlotMachine example');
                 var td_url = window.location.origin;
                 if(td_url === null || !td_url.startsWith('http'))
-                    td_url = 'http://localhost:8888/';
+                    td_url = 'http://localhost:8888';
+                td_url += '/wt-api';
 
                 fetch(td_url)
                     .then((response) => response.json())

@@ -1,5 +1,5 @@
 // Webthing-CPP
-// SPDX-FileCopyrightText: 2023 Benno Waldhauer
+// SPDX-FileCopyrightText: 2023-2024 Benno Waldhauer
 // SPDX-License-Identifier: MIT
 
 #include "bw/webthing/webthing.hpp"
@@ -208,19 +208,34 @@ auto make_gui_thing()
 
 int main()
 {
+    // configure logger
     logger::set_level(log_level::trace);
     logger::use_color(true);
 
+    // setup thing
     auto thing = make_gui_thing();
     auto server = WebThingServer::host(SingleThing(thing.get()))
+        .base_path("/wt-api")
         .port(8888)
         .build();
 
     auto web = server.get_web_server();
+    
+    // register additional html page
     web->get("/gui", [&](auto res, auto req){
         WebThingServer::Response(req, res).html(gui_html).end();
     });
 
+    // register additional static file
+    web->get("/favicon.ico", [&](auto res, auto req){
+        WebThingServer::Response(req, res)
+            .header("Content-Type","image/svg+xml")
+            .body(R"(<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 16 16"><rect width="16" height="16" fill="white"/><circle cx="8" cy="8" r="5" fill="black"/></svg>)")
+            .end();
+    });
+
+    // thing description will be available at: http://localhost:8888/wt-api
+    // GUI consuming the thing will be available at: http://localhost:8888/gui
     server.start();
     return 0;
 }

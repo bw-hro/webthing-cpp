@@ -1,5 +1,5 @@
 // Webthing-CPP
-// SPDX-FileCopyrightText: 2023 Benno Waldhauer
+// SPDX-FileCopyrightText: 2023-2024 Benno Waldhauer
 // SPDX-License-Identifier: MIT
 
 #pragma once
@@ -166,10 +166,16 @@ public:
             : req_(req)
             , res_(res)
         {}
-        
+
         Response& status(std::string_view status)
         {
             status_ = status;
+            return *this;
+        }
+
+        Response& body(std::string_view body)
+        {
+            body_ = body;
             return *this;
         }
 
@@ -224,15 +230,15 @@ public:
 
         Response& json(std::string_view body)
         {
-            header("Content-Type", "application/json");
-            body_ = body;
+            this->header("Content-Type", "application/json");
+            this->body(body);
             return *this;
         }
 
         Response& html(std::string_view body)
         {
-            header("Content-Type", "text/html; charset=utf-8");
-            body_ = body;
+            this->header("Content-Type", "text/html; charset=utf-8");
+            this->body(body);
             return *this;
         }
 
@@ -339,6 +345,7 @@ public:
 
         if(is_single)
         {
+            server.get(base_path, CREATE_HANDLER(handle_thing));
             server.get(base_path + "/", CREATE_HANDLER(handle_thing));
             server.get(base_path + "/properties", CREATE_HANDLER(handle_properties));
             server.get(base_path + "/properties/:property_name", CREATE_HANDLER(handle_property_get));
@@ -355,6 +362,7 @@ public:
         }
         else
         {
+            server.get(base_path, CREATE_HANDLER(handle_things));
             server.get(base_path + "/", CREATE_HANDLER(handle_things));
             server.get(base_path + "/:thing_id", CREATE_HANDLER(handle_thing));
             server.get(base_path + "/:thing_id/properties", CREATE_HANDLER(handle_properties));
@@ -654,8 +662,8 @@ private:
 
         auto host = req->getHeader("host");
         auto path = req->getUrl();
-        
-        if(path.back() == '/' && path != (base_path + "/"))
+
+        if(path.back() == '/' && path != "/" && path != (base_path + "/"))
         {
             // redirect to non-trailing slash url
             auto location = (is_ssl_enabled() ? "https://" : "http://") + std::string(host) + std::string(path.data(), path.size()-1);
