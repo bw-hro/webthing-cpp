@@ -1,0 +1,45 @@
+name: Windows
+
+on:
+  push:
+    branches: [ "master" ]
+  pull_request:
+    branches: [ "master" ]
+
+jobs:
+  build-and-test:
+    runs-on: windows-latest
+    
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: Setup Python
+      uses: actions/setup-python@v5
+      with:
+        python-version: '3.x'
+
+    - name: Setup MSBuild
+      uses: microsoft/setup-msbuild@v2
+
+    - name: Setup vcpkg
+      run: |
+        .\tools\install-vcpkg.bat
+      
+    - name: Build
+      run: |
+        .\build.bat clean release
+
+    - name: Integration tests
+      working-directory: .\tools
+      run: |
+        python run-webthing-tester-windows.py
+
+    - name: Upload binaries
+      uses: actions/upload-artifact@v4
+      with:
+        name: binaries
+        path: |
+          .\build\examples\Release\single-thing.exe
+          .\build\examples\Release\multiple-things.exe
+          .\build\examples\Release\gui-thing.exe
+          .\build\test\Release\tests.exe

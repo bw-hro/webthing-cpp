@@ -2,6 +2,10 @@
 
 # Webthing-CPP
 
+[![CI Ubuntu](https://github.com/bw-hro/webthing-cpp/actions/workflows/ubuntu.yml/badge.svg?branch=master)](https://github.com/bw-hro/webthing-cpp/actions/workflows/ubuntu.yml)
+[![CI Windows](https://github.com/bw-hro/webthing-cpp/actions/workflows/windows.yml/badge.svg?branch=master)](https://github.com/bw-hro/webthing-cpp/actions/workflows/windows.yml)
+[![GitHub license](https://img.shields.io/badge/license-MIT-blue.svg)](https://raw.githubusercontent.com/bw-hro/webthing-cpp/master/LICENSE.txt)
+
 Webthing-CPP is a modern CPP/C++17 implementation of the [WebThings API](https://webthings.io/api). Goal of the project is to offer an easy way to set up digital twins with web interface for arbitrary things by just specifying their properties, actions and events. This projects focus lies on an easy to use API heavily inspired by similar projects from the [Java](https://github.com/WebThingsIO/webthing-java) and [Python](https://github.com/WebThingsIO/webthing-python) world.
 
 Webthing-CPP comes with MIT license without any warranty. DISCLAIMER: At the moment this project is in an early stage. Please make sure to perform sufficient number of tests if it suits your needs regarding stability before using it in production.
