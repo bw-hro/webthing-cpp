@@ -25,7 +25,9 @@ def clone_or_update_webthing_tester_repo():
 def install_python_dependencies():
     """Install required Python packages."""
     print("Installing Python dependencies...")
-    run_command("pip3 install --user -r webthing-tester/requirements.txt")
+    run_command("python3 -m venv webthing-tester-venv")
+    run_command(".\\webthing-tester-venv\\Scripts\\activate.bat")
+    run_command("pip3 install -r webthing-tester/requirements.txt")
 
 def build_webthing_cpp():
     """Build Webthing-CPP if the binaries do not exist."""

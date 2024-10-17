@@ -11,7 +11,10 @@ else
     git clone -b time-regex-option https://github.com/bw-hro/webthing-tester.git
 fi
 
-pip3 install --user -r webthing-tester/requirements.txt
+# Install python dependencies inside a virtual environment
+python3 -m venv webthing-tester-venv
+source webthing-tester-venv/bin/activate
+pip3 install -r webthing-tester/requirements.txt
 
 # build Webthing-CPP with examples when they do not exist
 SINGLE_BIN="../build/examples/single-thing"

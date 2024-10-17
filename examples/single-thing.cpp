@@ -1,3 +1,7 @@
+// Webthing-CPP
+// SPDX-FileCopyrightText: 2023-present Benno Waldhauer
+// SPDX-License-Identifier: MIT
+
 #include <bw/webthing/webthing.hpp>
 
 using namespace bw::webthing;

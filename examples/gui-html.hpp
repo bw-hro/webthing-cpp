@@ -1,5 +1,5 @@
 // Webthing-CPP
-// SPDX-FileCopyrightText: 2023-2024 Benno Waldhauer
+// SPDX-FileCopyrightText: 2023-present Benno Waldhauer
 // SPDX-License-Identifier: MIT
 
 #pragma once
