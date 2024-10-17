@@ -130,7 +130,7 @@ public:
         if(metadata.contains("readOnly"))
         {
             auto json_ro = metadata["readOnly"];
-            bool read_only = json_ro.is_boolean() && json_ro.get<bool>();
+            bool read_only = json_ro.is_boolean() && json_ro.template get<bool>();
             if(read_only)
                 throw PropertyError("Read-only property");
         }
