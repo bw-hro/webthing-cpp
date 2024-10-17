@@ -1,5 +1,5 @@
 // Webthing-CPP
-// SPDX-FileCopyrightText: 2023 Benno Waldhauer
+// SPDX-FileCopyrightText: 2023-present Benno Waldhauer
 // SPDX-License-Identifier: MIT
 
 // MdnsService follows mdns.c example of Mattia Janssons mdns lib.
