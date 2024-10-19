@@ -25,9 +25,9 @@ target_link_libraries(tests PRIVATE ${LIBUSOCKETS_STATIC})
 target_link_libraries(tests PRIVATE ZLIB::ZLIB)
 target_link_libraries(tests PRIVATE $<IF:$<TARGET_EXISTS:libuv::uv_a>,libuv::uv_a,libuv::uv>)
 
-IF(WT_WITH_SSL)
+if(WT_WITH_SSL)
     target_link_libraries(tests PRIVATE OpenSSL::SSL OpenSSL::Crypto)
-ENDIF(WT_WITH_SSL)
+endif(WT_WITH_SSL)
 
 include(CTest)
 include(Catch)
