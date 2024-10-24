@@ -35,6 +35,6 @@ cp $vcpkg_file vcpkg.json
 
 
 cmake -B build -S . -D"WT_WITH_SSL=$ssl_support" -D"CMAKE_BUILD_TYPE=$build_type" -D"CMAKE_TOOLCHAIN_FILE=$toolchain_file" -D"CMAKE_MAKE_PROGRAM:PATH=make" -D"CMAKE_CXX_COMPILER=g++"
-cmake --build build
+cmake --build build --parallel $(nproc)
 
 ctest --test-dir build/test/
