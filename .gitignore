@@ -3,5 +3,6 @@ lib/
 tools/bruno/
 tools/vcpkg/
 tools/webthing-tester/
+tools/webthing-tester-venv/
 .vscode/
 todo.md
