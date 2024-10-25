@@ -6,6 +6,7 @@
 
 #include <vector>
 #include <bw/webthing/action.hpp>
+#include <bw/webthing/constants.hpp>
 #include <bw/webthing/event.hpp>
 #include <bw/webthing/json.hpp>
 #include <bw/webthing/property.hpp>
@@ -115,6 +116,11 @@ public:
     std::string get_context() const
     {
         return context;
+    }
+
+    void set_context(std::string context)
+    {
+        this->context = context;
     }
 
     json get_property_descriptions() const
@@ -354,7 +360,7 @@ public:
 
 protected:
     std::string id;
-    std::string context = "https://webthings.io/schemas";
+    std::string context = WEBTHINGS_IO_CONTEXT;
     std::string title;
     std::vector<std::string> type;
     std::string description;
