@@ -1,21 +1,41 @@
 {
-    "name": "webthing-cpp",
-    "version-string": "1.0.5",
-    "builtin-baseline": "c82f74667287d3dc386bce81e44964370c91a289",
-    "dependencies": [
-      "catch2",
-      "json-schema-validator",
-      "mdns",
-      "nlohmann-json",
-      "openssl",
-      {"name":"usockets", "features":["ssl"]},
-      "uwebsockets"
-    ],
-    "overrides": [
-      {"name": "catch2", "version": "3.7.1"},
-      {"name": "json-schema-validator", "version": "2.3.0"},
-      {"name": "mdns", "version": "1.4.3"},
-      {"name": "nlohmann-json", "version": "3.11.3"},
-      {"name": "uwebsockets", "version": "20.67.0"}
-    ]
+  "name": "webthing-cpp",
+  "version-string": "1.0.6",
+  "builtin-baseline": "c82f74667287d3dc386bce81e44964370c91a289",
+  "dependencies": [
+    "catch2",
+    "json-schema-validator",
+    "mdns",
+    "nlohmann-json",
+    "openssl",
+    {
+      "name": "usockets",
+      "features": [
+        "ssl"
+      ]
+    },
+    "uwebsockets"
+  ],
+  "overrides": [
+    {
+      "name": "catch2",
+      "version": "3.7.1"
+    },
+    {
+      "name": "json-schema-validator",
+      "version": "2.3.0"
+    },
+    {
+      "name": "mdns",
+      "version": "1.4.3"
+    },
+    {
+      "name": "nlohmann-json",
+      "version": "3.11.3"
+    },
+    {
+      "name": "uwebsockets",
+      "version": "20.67.0"
+    }
+  ]
 }
