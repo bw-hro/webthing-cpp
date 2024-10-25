@@ -9,6 +9,7 @@
 #include <vector>
 #include <bw/webthing/mdns.hpp>
 #include <bw/webthing/thing.hpp>
+#include <bw/webthing/version.hpp>
 #include <uwebsockets/App.h>
 
 namespace bw::webthing {
@@ -342,7 +343,7 @@ public:
         #define CREATE_HANDLER(handler_function) [&](auto* res, auto* req) { \
             delegate_request(res, req, [&](auto* rs, auto* rq) { handler_function(rs, rq); }); \
         }
-        
+
         if(!is_single)
         {
             server.get(base_path, CREATE_HANDLER(handle_things));
@@ -499,7 +500,7 @@ public:
 
     void start()
     {
-        logger::info("Start WebThingServer hosting '" + things.get_name() + 
+        logger::info("Start WebThingServer v" + std::string(version) + " hosting '" + things.get_name() + 
             "' containing " + std::to_string(things.get_things().size()) + " thing" +
             std::string(things.get_things().size() == 1 ? "" : "s"));
 

@@ -9,6 +9,7 @@ add_executable(tests
     "unit-test/thing_tests.cpp"
     "unit-test/utils_tests.cpp"
     "unit-test/value_tests.cpp"
+    "unit-test/version_tests.cpp"
     "unit-test/webthing_tests.cpp"
 )
 
