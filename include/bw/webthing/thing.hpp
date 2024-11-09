@@ -10,6 +10,7 @@
 #include <bw/webthing/event.hpp>
 #include <bw/webthing/json.hpp>
 #include <bw/webthing/property.hpp>
+#include <bw/webthing/storage.hpp>
 
 namespace bw::webthing {
 
@@ -151,7 +152,7 @@ public:
     {
         json descriptions = json::array();
 
-        for(auto& evt : events)
+        for(const auto& evt : events)
             if(!event_name || event_name == evt->get_name())
                 descriptions.push_back(evt->as_event_description());
 
@@ -267,7 +268,7 @@ public:
     {
         if(!metadata.is_object())
             throw ActionError("Action metadata must be encoded as json object.");
-        
+
         available_actions[name] = { metadata, class_supplier };
         actions[name] = {};
     }
@@ -313,7 +314,7 @@ public:
     // Add a new event and notify subscribers
      void add_event(std::shared_ptr<Event> event)
      {
-        events.push_back(event);
+        events.add(event);
         event_notify(*event);
      }
 
@@ -354,9 +355,15 @@ public:
     }
 
     void add_message_observer(MessageCallback observer)
-	{
-		observers.push_back(observer);
-	}
+    {
+        observers.push_back(observer);
+    }
+
+    // limits the number of stored events, should be set in initialization phase
+    void set_event_storage_limit(size_t limit)
+    {
+        events = {limit};
+    }
 
 protected:
     std::string id;
@@ -368,7 +375,7 @@ protected:
     std::map<std::string, AvailableAction> available_actions;
     std::map<std::string, json> available_events;
     std::map<std::string, std::vector<std::shared_ptr<Action>>> actions;
-    std::vector<std::shared_ptr<Event>> events;
+    SimpleRingBuffer<std::shared_ptr<Event>> events;
     std::string href_prefix;
     std::optional<std::string> ui_href;
     std::vector<MessageCallback> observers;

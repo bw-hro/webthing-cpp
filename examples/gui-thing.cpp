@@ -156,6 +156,7 @@ auto make_gui_thing()
 {
     auto thing = make_thing("urn:gui-thing-123", "The WebThing Slot Machine", "SLOT_MACHINE_THING", "A slot machine thing with GUI");
     thing->set_ui_href("/gui");
+    thing->set_event_storage_limit(1024);
 
     link_property(thing, "coins", slot_machine.coins_inserted, {
         {"title", "coins"},

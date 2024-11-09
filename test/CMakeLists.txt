@@ -6,6 +6,7 @@ add_executable(tests
     "unit-test/json_validator_tests.cpp"
     "unit-test/property_tests.cpp"
     "unit-test/server_tests.cpp"
+    "unit-test/storage_tests.cpp"
     "unit-test/thing_tests.cpp"
     "unit-test/utils_tests.cpp"
     "unit-test/value_tests.cpp"
