@@ -64,7 +64,7 @@ execute_cancel_action(T& action_impl)
 
 template<class T, class A> ActionBehavior make_action_behavior(T* thing, A* action_impl)
 {
-    return { 
+    return {
         [thing](auto action_status){ thing->action_notify(action_status); },
         [action_impl]{ action_impl->perform_action(); },
         [action_impl]{ execute_cancel_action(*action_impl); },

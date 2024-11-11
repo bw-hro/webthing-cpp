@@ -8,42 +8,46 @@
 
 using namespace bw::webthing;
 
-TEST_CASE( "SimpleRingBuffer compared to std::vector", "[.][benchmark][storage]" )
+using SimpleRingBuffer_EventPtr = SimpleRingBuffer<std::shared_ptr<Event>> ;
+using FlexibleRingBuffer_EventPtr = SimpleRingBuffer<std::shared_ptr<Event>> ;
+
+TEMPLATE_TEST_CASE( "RingBufferImpl compared to std::vector", "[.][benchmark][storage]",
+    SimpleRingBuffer_EventPtr, FlexibleRingBuffer_EventPtr )
 {
-    int number_elements = GENERATE(10, 1000, 100000, 1000000);
+    int number_elements = GENERATE(10, 1000, 100000);
     std::string num_str = ", " + std::to_string(number_elements) + " stored elements";
 
     std::vector<std::shared_ptr<Event>> prepared_events;
     for(int i = 0; i < number_elements; i++)
         prepared_events.push_back(std::make_shared<Event>(nullptr, "test-event-" + std::to_string(i), "test-event-data"));
 
-    BENCHMARK("SimpleRingBuffer with 2024 limit" + num_str)
+    BENCHMARK("RingBufferImpl with 2024 limit" + num_str)
     {
-        SimpleRingBuffer<std::shared_ptr<Event>> storage(2024); // limit
+        TestType storage(2024); // limit
         for(int i = 0; i < number_elements; i++)
             storage.add(prepared_events[i]);
         return storage;
     };
 
-    BENCHMARK("SimpleRingBuffer with 2024 limit, write protected" + num_str)
+    BENCHMARK("RingBufferImpl with 2024 limit, write protected" + num_str)
     {
-        SimpleRingBuffer<std::shared_ptr<Event>> storage(2024, true); // limit, write protected
+        TestType storage(2024, true); // limit, write protected
         for(int i = 0; i < number_elements; i++)
             storage.add(prepared_events[i]);
         return storage;
     };
 
-    BENCHMARK("SimpleRingBuffer without limit" + num_str)
+    BENCHMARK("RingBufferImpl without limit" + num_str)
     {
-        SimpleRingBuffer<std::shared_ptr<Event>> storage; // no limit
+        TestType storage; // no limit
         for(int i = 0; i < number_elements; i++)
             storage.add(prepared_events[i]);
         return storage;
     };
 
-    BENCHMARK("SimpleRingBuffer without limit, write protected" + num_str)
+    BENCHMARK("RingBufferImpl without limit, write protected" + num_str)
     {
-        SimpleRingBuffer<std::shared_ptr<Event>> storage(SIZE_MAX, true); // no limit, write protected
+        TestType storage(SIZE_MAX, true); // no limit, write protected
         for(int i = 0; i < number_elements; i++)
             storage.add(prepared_events[i]);
         return storage;
@@ -58,9 +62,10 @@ TEST_CASE( "SimpleRingBuffer compared to std::vector", "[.][benchmark][storage]"
     };
 }
 
-TEST_CASE( "SimpleRingBuffer does not limit number of stored elements by default", "[storage]" )
+TEMPLATE_TEST_CASE( "RingBufferImpl does not limit number of stored elements by default", "[storage]",
+    SimpleRingBuffer_EventPtr, FlexibleRingBuffer_EventPtr )
 {
-    SimpleRingBuffer<std::shared_ptr<Event>> storage; // no limitation
+    TestType storage; // no limitation
 
     REQUIRE( storage.size() ==  0 );
     REQUIRE_THROWS_AS( storage.get(0), std::out_of_range );
@@ -86,9 +91,10 @@ TEST_CASE( "SimpleRingBuffer does not limit number of stored elements by default
     REQUIRE( names[number_elements-1] == storage.get(number_elements-1)->get_name() );   
 }
 
-TEST_CASE( "SimpleRingBuffer can limit number of stored elements", "[storage]" )
+TEMPLATE_TEST_CASE( "RingBufferImpl can limit number of stored elements", "[storage]",
+    SimpleRingBuffer_EventPtr, FlexibleRingBuffer_EventPtr )
 {
-    SimpleRingBuffer<std::shared_ptr<Event>> storage(3); // 3 elements limit
+    TestType storage(3); // 3 elements limit
 
     REQUIRE( storage.size() ==  0 );
     REQUIRE_THROWS_AS( storage.get(0), std::out_of_range );
@@ -116,10 +122,10 @@ TEST_CASE( "SimpleRingBuffer can limit number of stored elements", "[storage]" )
     REQUIRE( names == expected_names );
 }
 
-
-TEST_CASE( "SimpleRingBuffer gives access to stored elements as references", "[storage]" )
+TEMPLATE_TEST_CASE( "RingBufferImpl gives access to stored elements as references", "[storage]",
+    SimpleRingBuffer<std::string>, FlexibleRingBuffer<std::string> )
 {
-    SimpleRingBuffer<std::string> storage(3);
+    TestType storage(3);
     storage.add("first");
     storage.add("second");
     storage.add("third");
@@ -134,9 +140,10 @@ TEST_CASE( "SimpleRingBuffer gives access to stored elements as references", "[s
     REQUIRE( storage.get(0) == "xirst" );
 }
 
-TEST_CASE( "SimpleRingBuffer can protect write access", "[storage]" )
+TEMPLATE_TEST_CASE( "RingBufferImpl can protect write access", "[storage]",
+    SimpleRingBuffer<std::string>, FlexibleRingBuffer<std::string> )
 {
-    SimpleRingBuffer<std::string> storage(SIZE_MAX, true);
+    TestType storage(SIZE_MAX, true);
 
     int num_threads = 10;
     int num_elements_per_thread = 1000;
@@ -154,4 +161,64 @@ TEST_CASE( "SimpleRingBuffer can protect write access", "[storage]" )
         t.join();
 
     REQUIRE( storage.size() == num_threads * num_elements_per_thread );
+}
+
+TEMPLATE_TEST_CASE( "RingBufferImpl offers iterator access", "[storage]",
+    SimpleRingBuffer<std::string>, FlexibleRingBuffer<std::string> )
+{
+    TestType storage(3);
+    storage.add("aaa");
+    storage.add("bbb");
+    storage.add("ccc");
+    storage.add("ddd");
+    storage.add("eee");
+    
+    for(int i = 0; i < storage.size(); i++)
+        storage.get(i).at(0) = 'x';
+
+    for(auto& element: storage)
+        element.at(1) = 'y';
+
+    REQUIRE( storage.size() == 3 );
+    REQUIRE( storage.get(0) == "xyc" );
+    REQUIRE( storage.get(1) == "xyd" );
+    REQUIRE( storage.get(2) == "xye" );
+
+    std::vector<std::string> es;
+    for(const auto& element: storage)
+        es.push_back(element);
+
+    std::vector<std::string> expected = {"xyc", "xyd", "xye"};
+    REQUIRE( es == expected );
+}
+
+TEMPLATE_TEST_CASE( "RingBufferImpl elements can be removed", "[storage]",
+    FlexibleRingBuffer<std::string> )
+{
+    TestType storage(5);
+    storage.add("a");
+    storage.add("b");
+    storage.add("c");
+    storage.add("d");
+    storage.add("e");
+    storage.add("f");
+    storage.add("g");
+
+    REQUIRE( storage.size() == 5 );
+    REQUIRE( storage.get(0) == "c" );
+    REQUIRE( storage.get(4) == "g" );
+
+    storage.remove_if([](auto s){
+        return s == "d" || s == "f";
+    });
+
+    REQUIRE( storage.size() == 3 );
+    REQUIRE( storage.get(0) == "c" );
+    REQUIRE( storage.get(1) == "e" );
+    REQUIRE( storage.get(2) == "g" );
+
+    storage.add("h");
+
+    REQUIRE( storage.size() == 4 );
+    REQUIRE( storage.get(3) == "h" );
 }
