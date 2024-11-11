@@ -8,6 +8,6 @@
 
 namespace bw::webthing {
 
-constexpr const char version[] = "1.0.6"; 
+constexpr const char version[] = "1.1.0"; 
 
 } // bw::webthing
