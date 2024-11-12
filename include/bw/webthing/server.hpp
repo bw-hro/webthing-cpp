@@ -257,7 +257,7 @@ public:
 
             if(logger::get_level() == log_level::trace)
             {
-                std::stringstream ss;
+                std::ostringstream ss;
                 ss << "http - '" << res_->getRemoteAddressAsText() << "'";
                 ss << " '" << req_->getCaseSensitiveMethod();
                 ss << " " << req_->getFullUrl() << " HTTP/1.1'";
@@ -632,6 +632,25 @@ private:
     void delegate_request(uwsHttpResponse* res, uWS::HttpRequest* req,
         std::function<void(uwsHttpResponse*, uWS::HttpRequest*)> handler)
     {
+        // default aborted handling
+        if(logger::get_level() == log_level::trace)
+        {
+            std::ostringstream ss;
+            ss << "http - '" << res->getRemoteAddressAsText() << "'";
+            ss << " '" << req->getCaseSensitiveMethod();
+            ss << " " << req->getFullUrl() << " HTTP/1.1'";
+            ss << " 'ABORTED'";
+            ss << " '" << req->getHeader("host") << "'";
+            ss << " '" << req->getHeader("user-agent") << "'";
+            res->onAborted([str = std::move(ss.str())](){
+                logger::trace(str);
+            });
+        }
+        else
+        {
+            res->onAborted([](){/*do nothing*/});
+        }
+
         // pre filter
         if(!validate_host(req))
         {
