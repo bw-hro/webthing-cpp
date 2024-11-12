@@ -15,7 +15,7 @@ namespace bw::webthing {
 struct StorageConfig
 {
     size_t max_size = SIZE_MAX;
-    bool write_protected = false;
+    bool write_protected = true;
 };
 
 // A simple ring buffer that overwrites oldest elements when max_size is reached.

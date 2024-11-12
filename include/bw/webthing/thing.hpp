@@ -384,7 +384,7 @@ protected:
     std::map<std::string, std::shared_ptr<PropertyBase>> properties;
     std::map<std::string, AvailableAction> available_actions;
     std::map<std::string, json> available_events;
-    StorageConfig action_storage_config = {10000, true};
+    StorageConfig action_storage_config = {10000};
     std::map<std::string, FlexibleRingBuffer<std::shared_ptr<Action>>> actions;
     StorageConfig event_storage_config = {100000};
     SimpleRingBuffer<std::shared_ptr<Event>> events = {event_storage_config};
