@@ -9,20 +9,20 @@
 [![GitHub Releases](https://img.shields.io/github/release/bw-hro/webthing-cpp.svg)](https://github.com/bw-hro/webthing-cpp/releases)
 [![Vcpkg Version](https://img.shields.io/vcpkg/v/webthing-cpp)](https://vcpkg.link/ports/webthing-cpp)
 
-Webthing-CPP is a modern CPP/C++17 implementation of the [WebThings API](https://webthings.io/api). Goal of the project is to offer an easy way to set up digital twins with web interface for arbitrary things by just specifying their properties, actions and events. This projects focus lies on an easy to use API heavily inspired by similar projects from the [Java](https://github.com/WebThingsIO/webthing-java) and [Python](https://github.com/WebThingsIO/webthing-python) world.
+Webthing-CPP is a modern CPP/C++17 implementation of the [WebThings API](https://webthings.io/api). The goal of the project is to provide an easy way to set up digital twins with a web interface for various "things" by simply specifying their properties, actions, and events. This project focuses on an easy-to-use API, heavily inspired by similar projects in the [Java](https://github.com/WebThingsIO/webthing-java) and [Python](https://github.com/WebThingsIO/webthing-python) ecosystems.
 
-Webthing-CPP comes with MIT license without any warranty. DISCLAIMER: At the moment this project is in an early stage. Please make sure to perform sufficient number of tests if it suits your needs regarding stability before using it in production.
+Webthing-CPP is distributed under the MIT license, without any warranty.
 
 ## Project structure
 
-This project follows a header only approach to make integration into own projects easier. Nevertheless it relies on some dependencies to implement its features:
+This project follows a header-only approach to simplify integration into other projects. However, it relies on several dependencies to implement its features:
 
-- [µWebSockets](https://github.com/uNetworking/uWebSockets) is used as backing http/websocket server.
-- [nlohmann::json](https://github.com/nlohmann/json) and [json-schema-validator](https://github.com/pboettch/json-schema-validator) are used to make working with json more comfortable.
-- [mdns](https://github.com/mjansson/mdns) is used for easy service discovery.
-- [OpenSSL](https://github.com/openssl/openssl) is used when SSL support is required. 
+- [µWebSockets](https://github.com/uNetworking/uWebSockets) serves as the underlying HTTP/WebSocket server.
+- [nlohmann::json](https://github.com/nlohmann/json) and [json-schema-validator](https://github.com/pboettch/json-schema-validator) are used to facilitate JSON handling.
+- [mdns](https://github.com/mjansson/mdns) enables easy service discovery.
+- [OpenSSL](https://github.com/openssl/openssl) is used to provide SSL support when required.
 
-The projects sources can be found in the _include_ folder. Beside the library sources the project is shipped with some examples for demonstration purposes located in the _examples_ folder. In addition some unit tests backed by [Catch2](https://github.com/catchorg/Catch2) framework can be found in _test_ folder. In _tools_ folder there are some helpers available related to _vcpkg_, tests and certificates.  
+The project’s source files are located in the _include_ folder. In addition to the library source files, the project includes several examples for demonstration purposes, which are located in the _examples_ folder. Additionally, unit tests based on the [Catch2](https://github.com/catchorg/Catch2) framework can be found in the _test/catch2_ folder, along with other test scripts. The tools folder contains various helpers related to _vcpkg_, code generation, and certificates.
 
 ## Defines 
 
@@ -68,7 +68,7 @@ Build project with SSL support.
 ./build.sh clean release with_ssl
 ```
 
-A self signed certificate for test purposes can be created by using the __create-pems.sh__ script from the __tools__ folder. This will create a _key.pem_ as well as a _cert.pem_. Make sure to configure the ```WebThingServer``` with correct ```SSLOptions``` e.g.:
+A self signed certificate for test purposes can be created by using the __create-pems.sh__ script located in the __tools__ folder. This will create a _key.pem_ as well as a _cert.pem_. Make sure to configure the ```WebThingServer``` with correct ```SSLOptions``` e.g.:
 
 ```C++
 SSLOptions ssl_options;
@@ -88,7 +88,7 @@ At the moment three example applications are available.
 
 - [single-thing.cpp](examples/single-thing.cpp) Shows how to set up a simple WebThing with two properties and an action.
 - [multiple-thing.cpp](examples/multiple-things.cpp) Shows how to host more then one WebThing in a single application. Things are a fake light and a fake humidity sensor.
-- [gui-thing.cpp](examples/gui-thing.cpp) Demonstrates how to embed  a HTML GUI of a fake slot machine and  how interact with it.
+- [gui-thing.cpp](examples/gui-thing.cpp) Demonstrates how to embed  a HTML GUI of a fake slot machine and how to interact with it.
 
 ### Example implementation
 
