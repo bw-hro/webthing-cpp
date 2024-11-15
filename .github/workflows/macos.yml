@@ -5,6 +5,7 @@ on:
     branches: [ "master" ]
   pull_request:
     branches: [ "master" ]
+  workflow_dispatch:
 
 jobs:
   build-and-test:
@@ -28,7 +29,7 @@ jobs:
         chmod +x ./build/test/tests
 
     - name: Integration tests
-      working-directory: ${{github.workspace}}/tools
+      working-directory: ${{github.workspace}}/test/webthing-tester
       run: |
         chmod +x ./run-webthing-tester.sh
         ./run-webthing-tester.sh

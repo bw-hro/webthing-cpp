@@ -31,8 +31,8 @@ def install_python_dependencies():
 
 def build_webthing_cpp():
     """Build Webthing-CPP if the binaries do not exist."""
-    single_bin = "../build/examples/Release/single-thing.exe"
-    multis_bin = "../build/examples/Release/multiple-things.exe"
+    single_bin = "../../build/examples/Release/single-thing.exe"
+    multis_bin = "../../build/examples/Release/multiple-things.exe"
 
     if not os.path.exists(single_bin) or not os.path.exists(multis_bin):
         print("Building Webthing-CPP with examples...")
@@ -72,10 +72,10 @@ def main():
     # Configure time regex to match timestamps with milliseconds
     time_regex = r"^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}.\d{3}[+-]\d{2}:\d{2}$"
 
-    single_example_path = "../build/examples/Release/single-thing.exe"
+    single_example_path = "../../build/examples/Release/single-thing.exe"
     run_example(single_example_path, time_regex)
 
-    multiple_example_path = "../build/examples/Release/multiple-things.exe"
+    multiple_example_path = "../../build/examples/Release/multiple-things.exe"
     run_example(multiple_example_path, time_regex, path_prefix="/0")
 
 if __name__ == "__main__":

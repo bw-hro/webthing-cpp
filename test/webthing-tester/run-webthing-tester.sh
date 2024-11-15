@@ -1,6 +1,6 @@
 #!/bin/bash -e
 
-# run this script from within the _tools_ directory
+# run this script from within the _test/webthing-tester_ directory
 
 # clone the webthing-tester
 if [ -d "webthing-tester" ]; then
@@ -17,12 +17,12 @@ source webthing-tester-venv/bin/activate
 pip3 install -r webthing-tester/requirements.txt
 
 # build Webthing-CPP with examples when they do not exist
-SINGLE_BIN="../build/examples/single-thing"
-MULTIS_BIN="../build/examples/multiple-things"
+SINGLE_BIN="../../build/examples/single-thing"
+MULTIS_BIN="../../build/examples/multiple-things"
 if [ ! -e "$SINGLE_BIN" ] || [ ! -e "$MULTIS_BIN" ]; then
-    cd ".."
+    cd "../.."
     ./build.sh clean release
-    cd "tools"
+    cd "test/webthing-tester"
 fi
 
 # configure time regex to match timestamps with milliseconds

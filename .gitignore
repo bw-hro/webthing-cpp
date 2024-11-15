@@ -2,7 +2,7 @@ build/
 lib/
 tools/bruno/
 tools/vcpkg/
-tools/webthing-tester/
-tools/webthing-tester-venv/
+test/webthing-tester/webthing-tester/
+test/webthing-tester/webthing-tester-venv/
 .vscode/
 todo*
