@@ -9,6 +9,16 @@
 
 using namespace bw::webthing;
 
+TEST_CASE( "Webthing thing context is configurable", "[context][thing]" )
+{
+
+    auto sut = std::make_shared<Thing>("uri::test.id", "my-test-thing");
+    REQUIRE( sut->get_context() == WEBTHINGS_IO_CONTEXT ); // default
+
+    sut->set_context("https://some.custom/context");
+    REQUIRE( sut->get_context() == "https://some.custom/context" );
+}
+
 TEST_CASE( "Webthing thing stores all published events", "[event][thing]" )
 {
     auto types = std::vector<std::string>{"test-type"};

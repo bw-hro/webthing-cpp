@@ -177,7 +177,7 @@ private:
 
         // TODO: make log level configurable for THING (notify e, p, a), WEBSOCKET (in, open, close, broadcast), MDNS, Https (REQ (with/without body), RES)
 
-        std::stringstream ss;
+        std::ostringstream ss;
         ss << color << timestamp << " [" << "" << std::this_thread::get_id() << "" << "] " <<
         dim_off << level_str << dim  << " -- " << dim_off << string_colored << color_clear;
 

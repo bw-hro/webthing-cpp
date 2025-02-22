@@ -1,3 +1,11 @@
+message(STATUS "Generate gui-html.hpp using gui.html content")
+set_property(DIRECTORY APPEND PROPERTY CMAKE_CONFIGURE_DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}/gui.html)
+file(READ "${CMAKE_CURRENT_SOURCE_DIR}/gui.html" GUI_HTML_CONTENT)
+configure_file(
+    "${CMAKE_CURRENT_SOURCE_DIR}/gui-html.hpp.in"
+    "${CMAKE_CURRENT_SOURCE_DIR}/gui-html.hpp"
+)
+
 set(LIBS_FOR_EXAMPLES 
     ${LIBUSOCKETS_STATIC}
     nlohmann_json::nlohmann_json

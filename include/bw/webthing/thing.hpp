@@ -6,9 +6,11 @@
 
 #include <vector>
 #include <bw/webthing/action.hpp>
+#include <bw/webthing/constants.hpp>
 #include <bw/webthing/event.hpp>
 #include <bw/webthing/json.hpp>
 #include <bw/webthing/property.hpp>
+#include <bw/webthing/storage.hpp>
 
 namespace bw::webthing {
 
@@ -117,6 +119,11 @@ public:
         return context;
     }
 
+    void set_context(std::string context)
+    {
+        this->context = context;
+    }
+
     json get_property_descriptions() const
     {
         auto pds = json::object();
@@ -145,7 +152,7 @@ public:
     {
         json descriptions = json::array();
 
-        for(auto& evt : events)
+        for(const auto& evt : events)
             if(!event_name || event_name == evt->get_name())
                 descriptions.push_back(evt->as_event_description());
 
@@ -243,7 +250,7 @@ public:
             auto action = action_type.class_supplier( std::move(input) );
             action->set_href_prefix(href_prefix);
             action_notify(action_status_message(action));
-            actions[name].push_back(action);
+            actions[name].add(action);
             return action;
         }
         catch(std::exception& ex)
@@ -261,9 +268,9 @@ public:
     {
         if(!metadata.is_object())
             throw ActionError("Action metadata must be encoded as json object.");
-        
+
         available_actions[name] = { metadata, class_supplier };
-        actions[name] = {};
+        actions[name] = {action_storage_config};
     }
 
     void action_notify(json action_status_message)
@@ -298,16 +305,14 @@ public:
         
         action->cancel();
         auto& as = actions[action_name];
-        as.erase(std::remove_if(as.begin(), as.end(), [&action_id](auto a){
-            return a->get_id() == action_id;}), as.end());
-
+        as.remove_if([&action_id](auto a){return a->get_id() == action_id;});
         return true;
     }
 
     // Add a new event and notify subscribers
      void add_event(std::shared_ptr<Event> event)
      {
-        events.push_back(event);
+        events.add(event);
         event_notify(*event);
      }
 
@@ -348,21 +353,41 @@ public:
     }
 
     void add_message_observer(MessageCallback observer)
-	{
-		observers.push_back(observer);
-	}
+    {
+        observers.push_back(observer);
+    }
+
+    // configures the storage of events, should be set in initialization phase
+    void configure_event_storage(const StorageConfig& config)
+    {
+        event_storage_config = config;
+        events = {event_storage_config};
+    }
+
+    // configures the storage of actions, should be set in initialization phase
+    // before actions are linked to the thing
+    void configure_action_storage(const StorageConfig& config)
+    {
+        action_storage_config = config;
+        for (auto& [action_name, actions] : actions)
+        {
+            actions = {action_storage_config};
+        }
+    }
 
 protected:
     std::string id;
-    std::string context = "https://webthings.io/schemas";
+    std::string context = WEBTHINGS_IO_CONTEXT;
     std::string title;
     std::vector<std::string> type;
     std::string description;
     std::map<std::string, std::shared_ptr<PropertyBase>> properties;
     std::map<std::string, AvailableAction> available_actions;
     std::map<std::string, json> available_events;
-    std::map<std::string, std::vector<std::shared_ptr<Action>>> actions;
-    std::vector<std::shared_ptr<Event>> events;
+    StorageConfig action_storage_config = {10000};
+    std::map<std::string, FlexibleRingBuffer<std::shared_ptr<Action>>> actions;
+    StorageConfig event_storage_config = {100000};
+    SimpleRingBuffer<std::shared_ptr<Event>> events = {event_storage_config};
     std::string href_prefix;
     std::optional<std::string> ui_href;
     std::vector<MessageCallback> observers;

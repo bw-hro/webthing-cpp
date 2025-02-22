@@ -1,15 +1,17 @@
 find_package(Catch2 3 REQUIRED)
 
 add_executable(tests
-    "unit-test/action_tests.cpp"
-    "unit-test/event_tests.cpp"
-    "unit-test/json_validator_tests.cpp"
-    "unit-test/property_tests.cpp"
-    "unit-test/server_tests.cpp"
-    "unit-test/thing_tests.cpp"
-    "unit-test/utils_tests.cpp"
-    "unit-test/value_tests.cpp"
-    "unit-test/webthing_tests.cpp"
+    "catch2/unit-tests/action_tests.cpp"
+    "catch2/unit-tests/event_tests.cpp"
+    "catch2/unit-tests/json_validator_tests.cpp"
+    "catch2/unit-tests/property_tests.cpp"
+    "catch2/unit-tests/server_tests.cpp"
+    "catch2/unit-tests/storage_tests.cpp"
+    "catch2/unit-tests/thing_tests.cpp"
+    "catch2/unit-tests/utils_tests.cpp"
+    "catch2/unit-tests/value_tests.cpp"
+    "catch2/unit-tests/version_tests.cpp"
+    "catch2/unit-tests/webthing_tests.cpp"
 )
 
 set_property(TARGET tests PROPERTY

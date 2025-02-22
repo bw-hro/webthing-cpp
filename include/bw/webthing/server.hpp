@@ -9,6 +9,7 @@
 #include <vector>
 #include <bw/webthing/mdns.hpp>
 #include <bw/webthing/thing.hpp>
+#include <bw/webthing/version.hpp>
 #include <uwebsockets/App.h>
 
 namespace bw::webthing {
@@ -256,7 +257,7 @@ public:
 
             if(logger::get_level() == log_level::trace)
             {
-                std::stringstream ss;
+                std::ostringstream ss;
                 ss << "http - '" << res_->getRemoteAddressAsText() << "'";
                 ss << " '" << req_->getCaseSensitiveMethod();
                 ss << " " << req_->getFullUrl() << " HTTP/1.1'";
@@ -341,43 +342,30 @@ public:
         
         #define CREATE_HANDLER(handler_function) [&](auto* res, auto* req) { \
             delegate_request(res, req, [&](auto* rs, auto* rq) { handler_function(rs, rq); }); \
-        }   
-
-        if(is_single)
-        {
-            server.get(base_path, CREATE_HANDLER(handle_thing));
-            server.get(base_path + "/", CREATE_HANDLER(handle_thing));
-            server.get(base_path + "/properties", CREATE_HANDLER(handle_properties));
-            server.get(base_path + "/properties/:property_name", CREATE_HANDLER(handle_property_get));
-            server.put(base_path + "/properties/:property_name", CREATE_HANDLER(handle_property_put));
-            server.get(base_path + "/actions", CREATE_HANDLER(handle_actions_get));
-            server.post(base_path + "/actions", CREATE_HANDLER(handle_actions_post));
-            server.get(base_path + "/actions/:action_name", CREATE_HANDLER(handle_actions_get));
-            server.post(base_path + "/actions/:action_name", CREATE_HANDLER(handle_actions_post));
-            server.get(base_path + "/actions/:action_name/:action_id", CREATE_HANDLER(handle_action_id_get));
-            server.put(base_path + "/actions/:action_name/:action_id", CREATE_HANDLER(handle_action_id_put));
-            server.del(base_path + "/actions/:action_name/:action_id", CREATE_HANDLER(handle_action_id_delete));
-            server.get(base_path + "/events", CREATE_HANDLER(handle_events));
-            server.get(base_path + "/events/:event_name", CREATE_HANDLER(handle_events));
         }
-        else
+
+        if(!is_single)
         {
             server.get(base_path, CREATE_HANDLER(handle_things));
             server.get(base_path + "/", CREATE_HANDLER(handle_things));
-            server.get(base_path + "/:thing_id", CREATE_HANDLER(handle_thing));
-            server.get(base_path + "/:thing_id/properties", CREATE_HANDLER(handle_properties));
-            server.get(base_path + "/:thing_id/properties/:property_name", CREATE_HANDLER(handle_property_get));
-            server.put(base_path + "/:thing_id/properties/:property_name", CREATE_HANDLER(handle_property_put));
-            server.get(base_path + "/:thing_id/actions", CREATE_HANDLER(handle_actions_get));
-            server.post(base_path + "/:thing_id/actions", CREATE_HANDLER(handle_actions_post));
-            server.get(base_path + "/:thing_id/actions/:action_name", CREATE_HANDLER(handle_actions_get));
-            server.post(base_path + "/:thing_id/actions/:action_name", CREATE_HANDLER(handle_actions_post));
-            server.get(base_path + "/:thing_id/actions/:action_name/:action_id", CREATE_HANDLER(handle_action_id_get));
-            server.put(base_path + "/:thing_id/actions/:action_name/:action_id", CREATE_HANDLER(handle_action_id_put));
-            server.del(base_path + "/:thing_id/actions/:action_name/:action_id", CREATE_HANDLER(handle_action_id_delete));
-            server.get(base_path + "/:thing_id/events", CREATE_HANDLER(handle_events));
-            server.get(base_path + "/:thing_id/events/:event_name", CREATE_HANDLER(handle_events));
         }
+
+        std::string thing_id_param = is_single ? "" : "/:thing_id";
+        server.get(base_path + thing_id_param, CREATE_HANDLER(handle_thing));
+        server.get(base_path + thing_id_param + "/", CREATE_HANDLER(handle_thing));
+        server.get(base_path + thing_id_param + "/properties", CREATE_HANDLER(handle_properties));
+        server.get(base_path + thing_id_param + "/properties/:property_name", CREATE_HANDLER(handle_property_get));
+        server.put(base_path + thing_id_param + "/properties/:property_name", CREATE_HANDLER(handle_property_put));
+        server.get(base_path + thing_id_param + "/actions", CREATE_HANDLER(handle_actions_get));
+        server.post(base_path + thing_id_param + "/actions", CREATE_HANDLER(handle_actions_post));
+        server.get(base_path + thing_id_param + "/actions/:action_name", CREATE_HANDLER(handle_actions_get));
+        server.post(base_path + thing_id_param + "/actions/:action_name", CREATE_HANDLER(handle_actions_post));
+        server.get(base_path + thing_id_param + "/actions/:action_name/:action_id", CREATE_HANDLER(handle_action_id_get));
+        server.put(base_path + thing_id_param + "/actions/:action_name/:action_id", CREATE_HANDLER(handle_action_id_put));
+        server.del(base_path + thing_id_param + "/actions/:action_name/:action_id", CREATE_HANDLER(handle_action_id_delete));
+        server.get(base_path + thing_id_param + "/events", CREATE_HANDLER(handle_events));
+        server.get(base_path + thing_id_param + "/events/:event_name", CREATE_HANDLER(handle_events));
+
         server.any("/*", CREATE_HANDLER(handle_invalid_requests));
         server.options("/*", CREATE_HANDLER(handle_options_requests));
 
@@ -512,7 +500,7 @@ public:
 
     void start()
     {
-        logger::info("Start WebThingServer hosting '" + things.get_name() + 
+        logger::info("Start WebThingServer v" + std::string(version) + " hosting '" + things.get_name() + 
             "' containing " + std::to_string(things.get_things().size()) + " thing" +
             std::string(things.get_things().size() == 1 ? "" : "s"));
 
@@ -644,6 +632,25 @@ private:
     void delegate_request(uwsHttpResponse* res, uWS::HttpRequest* req,
         std::function<void(uwsHttpResponse*, uWS::HttpRequest*)> handler)
     {
+        // default aborted handling
+        if(logger::get_level() == log_level::trace)
+        {
+            std::ostringstream ss;
+            ss << "http - '" << res->getRemoteAddressAsText() << "'";
+            ss << " '" << req->getCaseSensitiveMethod();
+            ss << " " << req->getFullUrl() << " HTTP/1.1'";
+            ss << " 'ABORTED'";
+            ss << " '" << req->getHeader("host") << "'";
+            ss << " '" << req->getHeader("user-agent") << "'";
+            res->onAborted([str = std::move(ss.str())](){
+                logger::trace(str);
+            });
+        }
+        else
+        {
+            res->onAborted([](){/*do nothing*/});
+        }
+
         // pre filter
         if(!validate_host(req))
         {

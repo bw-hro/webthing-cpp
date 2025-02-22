@@ -5,6 +5,7 @@ on:
     branches: [ "master" ]
   pull_request:
     branches: [ "master" ]
+  workflow_dispatch:
 
 jobs:
   build-and-test:
@@ -30,7 +31,7 @@ jobs:
         .\build.bat clean release
 
     - name: Integration tests
-      working-directory: .\tools
+      working-directory: .\test\webthing-tester
       run: |
         python run-webthing-tester-windows.py
 

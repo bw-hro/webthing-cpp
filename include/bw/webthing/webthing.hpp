@@ -15,6 +15,7 @@
 #include <bw/webthing/thing.hpp>
 #include <bw/webthing/utils.hpp>
 #include <bw/webthing/value.hpp>
+#include <bw/webthing/version.hpp>
 
 namespace bw::webthing
 {
