@@ -20,7 +20,7 @@
 namespace bw::webthing
 {
 
-std::shared_ptr<Thing> make_thing(std::string id, std::string title, std::vector<std::string> type, std::string description)
+inline std::shared_ptr<Thing> make_thing(std::string id, std::string title, std::vector<std::string> type, std::string description)
 {
     if(id == "")
         id = "uuid:" + generate_uuid();
@@ -29,7 +29,7 @@ std::shared_ptr<Thing> make_thing(std::string id, std::string title, std::vector
     return std::make_shared<Thing>(id, title, type, description);
 }
 
-std::shared_ptr<Thing> make_thing(std::string id = "", std::string title = "", std::string type = "", std::string description = "")
+inline std::shared_ptr<Thing> make_thing(std::string id = "", std::string title = "", std::string type = "", std::string description = "")
 {
     std::vector<std::string> types;
     if(type != "")
@@ -72,43 +72,43 @@ template<class T> std::shared_ptr<Property<T>> link_property(std::shared_ptr<Thi
     return link_property(thing, name, make_value(intial_value), metadata);
 }
 
-void link_event(Thing* thing, std::string name, json metadata = json::object())
+inline void link_event(Thing* thing, std::string name, json metadata = json::object())
 {
     thing->add_available_event(name, metadata);
 }
 
-void link_event(std::shared_ptr<Thing> thing, std::string name, json metadata = json::object())
+inline void link_event(std::shared_ptr<Thing> thing, std::string name, json metadata = json::object())
 {
     link_event(thing.get(), name, metadata);
 }
 
-std::shared_ptr<Event> emit_event(Thing* thing, std::string name, std::optional<json> data = std::nullopt)
+inline std::shared_ptr<Event> emit_event(Thing* thing, std::string name, std::optional<json> data = std::nullopt)
 {
     auto event = std::make_shared<Event>(thing, name, data);
     thing->add_event(event);
     return event;
 }
 
-std::shared_ptr<Event> emit_event(std::shared_ptr<Thing> thing, std::string name, std::optional<json> data = std::nullopt)
+inline std::shared_ptr<Event> emit_event(std::shared_ptr<Thing> thing, std::string name, std::optional<json> data = std::nullopt)
 {
     return emit_event(thing.get(), name, data);
 }
 
-std::shared_ptr<Event> emit_event(Thing* thing, Event&& event)
+inline std::shared_ptr<Event> emit_event(Thing* thing, Event&& event)
 {
     auto event_ptr = std::make_shared<Event>(event);
     thing->add_event(event_ptr);
     return event_ptr;
 }
 
-std::shared_ptr<Event> emit_event(std::shared_ptr<Thing> thing, Event&& event)
+inline std::shared_ptr<Event> emit_event(std::shared_ptr<Thing> thing, Event&& event)
 {
     auto event_ptr = std::make_shared<Event>(event);
     thing->add_event(event_ptr);
     return event_ptr;
 }
 
-void link_action(Thing* thing, std::string action_name, json metadata,
+inline void link_action(Thing* thing, std::string action_name, json metadata,
     std::function<void()> perform_action = nullptr, std::function<void()> cancel_action = nullptr)
 {
     Thing::ActionSupplier action_supplier = [thing, action_name, perform_action, cancel_action](auto input){
@@ -120,19 +120,19 @@ void link_action(Thing* thing, std::string action_name, json metadata,
     thing->add_available_action(action_name, metadata, std::move(action_supplier));
 }
 
-void link_action(std::shared_ptr<Thing> thing, std::string action_name, json metadata,
+inline void link_action(std::shared_ptr<Thing> thing, std::string action_name, json metadata,
     std::function<void()> perform_action = nullptr, std::function<void()> cancel_action = nullptr)
 {
     link_action(thing.get(), action_name, metadata, perform_action, cancel_action);
 }
 
-void link_action(Thing* thing, std::string action_name, 
+inline void link_action(Thing* thing, std::string action_name, 
     std::function<void()> perform_action = nullptr, std::function<void()> cancel_action = nullptr)
 {
     link_action(thing, action_name, json::object(), perform_action, cancel_action);
 }
 
-void link_action(std::shared_ptr<Thing> thing, std::string action_name, 
+inline void link_action(std::shared_ptr<Thing> thing, std::string action_name, 
     std::function<void()> perform_action = nullptr, std::function<void()> cancel_action = nullptr)
 {
     link_action(thing.get(), action_name, perform_action, cancel_action);

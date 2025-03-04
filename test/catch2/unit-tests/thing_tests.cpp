@@ -127,6 +127,12 @@ TEST_CASE( "Webthing things performes actions", "[action][thing]" )
 
     test_thing->remove_action("my-custom-action", "abc-123");
     REQUIRE_FALSE( test_thing->get_action("my-custom-action", "abc-123") );
+
+    // try to perform unavailable action
+    { 
+        FIXED_UUID_SCOPED("ghi-789");
+        REQUIRE_FALSE( test_thing->perform_action("some-unavailable-action", "my-input-string") );
+    }
 }
 
 #ifdef WT_USE_JSON_SCHEMA_VALIDATION

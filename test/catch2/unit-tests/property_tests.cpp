@@ -66,6 +66,19 @@ TEST_CASE( "Properties can be updated", "[property]" )
     REQUIRE( v1->get() == "Бennö 森林" );
 }
 
+TEST_CASE( "Properties meta data must be encoded as json object", "[property]" )
+{
+    auto val = create_value<std::string>("a_string_value");
+    auto prop = create_proptery("test-prop", val, json{{"title", "some-test-property"}});
+
+    REQUIRE( prop->get_metadata()["title"] == "some-test-property" );
+    REQUIRE( *prop->get_value<std::string>() == "a_string_value" );
+
+    REQUIRE_THROWS_MATCHES(create_proptery("test-prop", val, json{"some","data","as","array"}),
+        PropertyError,
+        Catch::Matchers::Message("Only json::object is allowed as meta data."));
+}
+
 TEST_CASE( "Properties value type can't be changed", "[property]" )
 {
     auto val = create_value<std::string>("a_string_value");

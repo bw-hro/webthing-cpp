@@ -1,4 +1,5 @@
 find_package(Catch2 3 REQUIRED)
+find_package(cpr CONFIG REQUIRED)
 
 add_executable(tests
     "catch2/unit-tests/action_tests.cpp"
@@ -21,6 +22,7 @@ set(INCLUDES_FOR_TESTS ../include)
 target_compile_definitions(tests PRIVATE CATCH_CONFIG_ENABLE_ALL_STRINGMAKERS)
 target_include_directories(tests PRIVATE ${INCLUDES_FOR_TESTS})
 target_link_libraries(tests PRIVATE Catch2::Catch2WithMain)
+target_link_libraries(tests PRIVATE cpr::cpr)
 target_link_libraries(tests PRIVATE nlohmann_json_schema_validator::validator)
 target_link_libraries(tests PRIVATE unofficial::uwebsockets::uwebsockets)
 
