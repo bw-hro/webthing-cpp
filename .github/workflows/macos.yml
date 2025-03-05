@@ -22,12 +22,16 @@ jobs:
     - name: Build
       run: |
         chmod +x ./build.sh
-        ./build.sh clean release
+        ./build.sh clean release skip_tests
         chmod +x ./build/examples/single-thing
         chmod +x ./build/examples/multiple-things
         chmod +x ./build/examples/gui-thing
         chmod +x ./build/test/tests
 
+    - name: Run tests with -s flag
+      run: |
+          ./build/test/tests -s
+    
     - name: Integration tests
       working-directory: ${{github.workspace}}/test/webthing-tester
       run: |

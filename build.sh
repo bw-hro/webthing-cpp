@@ -36,8 +36,31 @@ fi
 echo "project SSL support: $ssl_support"
 cp $vcpkg_file vcpkg.json
 
+if [[ "${@#without_tests}" = "$@" ]]
+then
+    build_tests="ON"
+else
+    build_tests="OFF"
+fi
+echo "project build tests: $build_tests"
 
-cmake -B build -S . -D"WT_WITH_SSL=$ssl_support" -D"CMAKE_BUILD_TYPE=$build_type" -D"WT_ENABLE_COVERAGE=$code_coverage" -D"CMAKE_TOOLCHAIN_FILE=$toolchain_file" -D"CMAKE_MAKE_PROGRAM:PATH=make" -D"CMAKE_CXX_COMPILER=g++"
+if [[ "${@#skip_tests}" = "$@" ]]
+then
+    skip_tests="OFF"
+else
+    skip_tests="ON"
+fi
+echo "project skip tests: $build_tests"
+
+if [[ "${@#without_examples}" = "$@" ]]
+then
+    build_examples="ON"
+else
+    build_examples="OFF"
+fi
+echo "project build examples: $build_examples"
+
+cmake -B build -S . -D"WT_BUILD_TESTS=$build_tests" -D"WT_SKIP_TESTS=$skip_tests" -D"WT_BUILD_EXAMPLES=$build_examples" -D"WT_WITH_SSL=$ssl_support" -D"CMAKE_BUILD_TYPE=$build_type" -D"WT_ENABLE_COVERAGE=$code_coverage" -D"CMAKE_TOOLCHAIN_FILE=$toolchain_file" -D"CMAKE_MAKE_PROGRAM:PATH=make" -D"CMAKE_CXX_COMPILER=g++"
 cmake --build build --parallel $(nproc)
 
 ctest --test-dir build/test/
