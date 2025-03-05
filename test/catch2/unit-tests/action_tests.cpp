@@ -69,7 +69,7 @@ SCENARIO( "actions have a stateful lifecycle", "[action]" )
                         logger::info("CustomAction perform action with input:" + get_input().value_or(json()).dump());
 
                         auto start_time = std::chrono::steady_clock::now();
-                        auto max_duration = std::chrono::milliseconds(200);
+                        auto max_duration = std::chrono::milliseconds(300);
 
                         while (!cancel_work && std::chrono::steady_clock::now() - start_time < max_duration)
                         {
