@@ -30,7 +30,7 @@ jobs:
 
     - name: Run tests with -s flag
       run: |
-          ./build/test/tests -s
+          ./build/test/tests
     
     - name: Integration tests
       working-directory: ${{github.workspace}}/test/webthing-tester
