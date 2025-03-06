@@ -4,10 +4,8 @@
 
 #include <catch2/catch_all.hpp>
 #include <cpr/cpr.h>
+#include <ixwebsocket/IXWebSocket.h>
 #include <bw/webthing/webthing.hpp>
-
-#include <websocketpp/config/asio_no_tls_client.hpp>
-#include <websocketpp/client.hpp>
 
 using namespace bw::webthing;
 
@@ -42,47 +40,42 @@ inline void test_running_server(WebThingServer::Builder& builder, std::function<
     }
 };
 
-using websocketpp::connection_hdl;
-using client = websocketpp::client<websocketpp::config::asio_client>;
-
-void connect_via_ws(const std::string& url, std::function<void (client::connection_ptr, std::vector<json>*)> client_callback)
+void connect_via_ws(const std::string& url, std::function<void (ix::WebSocket*, std::vector<json>*)> client_callback)
 {
     std::vector<json> messages_received;
-    auto on_message = [&](connection_hdl, client::message_ptr msg)
+
+    ix::WebSocket ws;
+    ws.setUrl(url);
+
+    ws.setOnMessageCallback([&](const ix::WebSocketMessagePtr& msg)
     {
-        auto message = msg->get_payload();
-        logger::info("WS_CLIENT RECEIVED: " + message);
-        messages_received.push_back(json::parse(message));
-    };
+        if (msg->type == ix::WebSocketMessageType::Message)
+        {
+            std::string message = msg->str;
+            logger::info("WS_CLIENT RECEIVED: " + message);
+            messages_received.push_back(json::parse(message));
+        }
+    });
 
-    client ws_client;
-    ws_client.clear_access_channels(websocketpp::log::alevel::all);
-    ws_client.clear_error_channels(websocketpp::log::elevel::all);
-    ws_client.init_asio();
-    ws_client.set_message_handler(on_message);
-
-    websocketpp::lib::error_code ec;
-    client::connection_ptr con = ws_client.get_connection(url, ec);
-    REQUIRE(!ec);  // Ensure connection is successful
-
-    ws_client.connect(con);
-    std::thread client_thread([&]() { ws_client.run(); });
+    ws.start();
 
     std::exception_ptr thread_exception = nullptr;
 
     try
     {
         std::this_thread::sleep_for(std::chrono::milliseconds(10));
-        client_callback(con, &messages_received);
+        client_callback(&ws, &messages_received);
         std::this_thread::sleep_for(std::chrono::milliseconds(10));
-    } catch (...) {
+    }
+    catch (...)
+    {
         thread_exception = std::current_exception();
     }
 
-    con->close(websocketpp::close::status::normal, "Test finished");
-    client_thread.join();
+    ws.stop();
 
-    if (thread_exception) {
+    if (thread_exception)
+    {
         std::rethrow_exception(thread_exception);
     }
 }
@@ -117,7 +110,7 @@ TEST_CASE( "It can make a single thing via websocket available", "[server][ws]" 
         REQUIRE(found_ws_link_obj != links.end());
         std::string ws_url = (*found_ws_link_obj)["href"];
 
-        connect_via_ws(ws_url, [&](client::connection_ptr con, std::vector<json>* received_messages_ptr)
+        connect_via_ws(ws_url, [&](auto con, std::vector<json>* received_messages_ptr)
         {
             std::vector<json>& received_messages = *received_messages_ptr;
 
@@ -130,41 +123,41 @@ TEST_CASE( "It can make a single thing via websocket available", "[server][ws]" 
             REQUIRE(received_messages.back()["messageType"] == "propertyStatus");
             REQUIRE(received_messages.back()["data"]["brightness"] == 42);
 
-            con->send(json{{"messageType", "setProperty"}, {"data", {{"brightness", 24}}}}.dump());
+            con->sendText(json{{"messageType", "setProperty"}, {"data", {{"brightness", 24}}}}.dump());
             std::this_thread::sleep_for(std::chrono::milliseconds(10));
             REQUIRE(received_messages.back()["messageType"] == "propertyStatus");
             REQUIRE(received_messages.back()["data"]["brightness"] == 24);
 
             // send no json message
-            con->send("Some string not beeing json...");
+            con->sendText("Some string not beeing json...");
             std::this_thread::sleep_for(std::chrono::milliseconds(10));
             REQUIRE(received_messages.back()["messageType"] == "error");
             REQUIRE(received_messages.back()["data"]["status"] == "400 Bad Request");
             REQUIRE(received_messages.back()["data"]["message"] == "Parsing request failed");
 
             // send json message missing messageType
-            con->send(json{{"data", {{"brightness", 666}}}}.dump());
+            con->sendText(json{{"data", {{"brightness", 666}}}}.dump());
             std::this_thread::sleep_for(std::chrono::milliseconds(10));
             REQUIRE(received_messages.back()["messageType"] == "error");
             REQUIRE(received_messages.back()["data"]["status"] == "400 Bad Request");
             REQUIRE(received_messages.back()["data"]["message"] == "Invalid message");
 
             // send json message missing data
-            con->send(json{{"messageType", "setProperty"}}.dump());
+            con->sendText(json{{"messageType", "setProperty"}}.dump());
             std::this_thread::sleep_for(std::chrono::milliseconds(10));
             REQUIRE(received_messages.back()["messageType"] == "error");
             REQUIRE(received_messages.back()["data"]["status"] == "400 Bad Request");
             REQUIRE(received_messages.back()["data"]["message"] == "Invalid message");
 
             // send json message with wrong data type
-            con->send(json{{"messageType", "setProperty"}, {"data", {{"brightness", "some-unexpected-string"}}}}.dump());
+            con->sendText(json{{"messageType", "setProperty"}, {"data", {{"brightness", "some-unexpected-string"}}}}.dump());
             std::this_thread::sleep_for(std::chrono::milliseconds(10));
             REQUIRE(received_messages.back()["messageType"] == "error");
             REQUIRE(received_messages.back()["data"]["status"] == "400 Bad Request");
             REQUIRE(received_messages.back()["data"]["message"] == "Property value type not matching");
 
             // send json message with invalid messageType
-            con->send(json{{"messageType", "invalidCommand"}, {"data", {{"perform", "invalid-task"}}}}.dump());
+            con->sendText(json{{"messageType", "invalidCommand"}, {"data", {{"perform", "invalid-task"}}}}.dump());
             std::this_thread::sleep_for(std::chrono::milliseconds(10));
             REQUIRE(received_messages.back()["messageType"] == "error");
             REQUIRE(received_messages.back()["data"]["status"] == "400 Bad Request");
@@ -234,21 +227,21 @@ TEST_CASE( "It can make multiple things via websocket available", "[server][ws]"
         std::string ws_url_b = (*found_ws_link_b_obj)["href"];
 
 
-        connect_via_ws(ws_url_a, [&](client::connection_ptr con, std::vector<json>* received_messages_ptr)
+        connect_via_ws(ws_url_a, [&](auto con, std::vector<json>* received_messages_ptr)
         {
             std::vector<json>& received_messages = *received_messages_ptr;
 
-            con->send(json{{"messageType", "setProperty"}, {"data", {{"boolean-prop", false}}}}.dump());
+            con->sendText(json{{"messageType", "setProperty"}, {"data", {{"boolean-prop", false}}}}.dump());
             std::this_thread::sleep_for(std::chrono::milliseconds(10));
             REQUIRE(received_messages.back()["messageType"] == "propertyStatus");
             REQUIRE(received_messages.back()["data"]["boolean-prop"] == false);
 
-            con->send(json{{"messageType", "setProperty"}, {"data", {{"double-prop", 24.0}}}}.dump());
+            con->sendText(json{{"messageType", "setProperty"}, {"data", {{"double-prop", 24.0}}}}.dump());
             std::this_thread::sleep_for(std::chrono::milliseconds(10));
             REQUIRE(received_messages.back()["messageType"] == "propertyStatus");
             REQUIRE(received_messages.back()["data"]["double-prop"] == 24.0);
 
-            con->send(json{{"messageType", "setProperty"}, {"data", {{"string-prop", "the-updated-value"}}}}.dump());
+            con->sendText(json{{"messageType", "setProperty"}, {"data", {{"string-prop", "the-updated-value"}}}}.dump());
             std::this_thread::sleep_for(std::chrono::milliseconds(10));
             REQUIRE(received_messages.back()["messageType"] == "propertyStatus");
             REQUIRE(received_messages.back()["data"]["string-prop"] == "the-updated-value");
@@ -260,16 +253,16 @@ TEST_CASE( "It can make multiple things via websocket available", "[server][ws]"
         REQUIRE(json::parse(res.text)["double-prop"] == 24.0);
         REQUIRE(json::parse(res.text)["string-prop"] == "the-updated-value");
 
-        connect_via_ws(ws_url_b, [&](client::connection_ptr con, std::vector<json>* received_messages_ptr)
+        connect_via_ws(ws_url_b, [&](auto con, std::vector<json>* received_messages_ptr)
         {
             std::vector<json>& received_messages = *received_messages_ptr;
 
-            con->send(json{{"messageType", "setProperty"}, {"data", {{"object-prop", {{"key", "updated-value"}}}}}}.dump());
+            con->sendText(json{{"messageType", "setProperty"}, {"data", {{"object-prop", {{"key", "updated-value"}}}}}}.dump());
             std::this_thread::sleep_for(std::chrono::milliseconds(10));
             REQUIRE(received_messages.back()["messageType"] == "propertyStatus");
             REQUIRE(received_messages.back()["data"]["object-prop"] == json{{"key", "updated-value"}});
 
-            con->send(json{{"messageType", "setProperty"}, {"data", {{"array-prop", {"a", "b", "c", 42}}}}}.dump());
+            con->sendText(json{{"messageType", "setProperty"}, {"data", {{"array-prop", {"a", "b", "c", 42}}}}}.dump());
             std::this_thread::sleep_for(std::chrono::milliseconds(10));
             REQUIRE(received_messages.back()["messageType"] == "propertyStatus");
             REQUIRE(received_messages.back()["data"]["array-prop"] == json{"a", "b", "c", 42});
@@ -311,7 +304,7 @@ TEST_CASE( "It offers websocket api for events", "[server][ws]" )
         REQUIRE(found_ws_link_obj != links.end());
         std::string ws_url = (*found_ws_link_obj)["href"];
 
-        connect_via_ws(ws_url, [&](client::connection_ptr con, std::vector<json>* received_messages_ptr)
+        connect_via_ws(ws_url, [&](auto con, std::vector<json>* received_messages_ptr)
         {
             std::vector<json>& received_messages = *received_messages_ptr;
 
@@ -321,10 +314,10 @@ TEST_CASE( "It offers websocket api for events", "[server][ws]" )
             REQUIRE(received_messages.empty());
 
             // subscribe to events
-            con->send(json{{"messageType", "addEventSubscription"}, {"data", {{"count-event", json::object()}}}}.dump());
+            con->sendText(json{{"messageType", "addEventSubscription"}, {"data", {{"count-event", json::object()}}}}.dump());
             std::this_thread::sleep_for(std::chrono::milliseconds(10));
             
-            con->send(json{{"messageType", "addEventSubscription"}, {"data", {{"message-event", json::object()}}}}.dump());
+            con->sendText(json{{"messageType", "addEventSubscription"}, {"data", {{"message-event", json::object()}}}}.dump());
             std::this_thread::sleep_for(std::chrono::milliseconds(10));
 
             // events emitted with websocket subscribers
@@ -381,11 +374,11 @@ TEST_CASE( "It offers websocket api for actions", "[server][ws]" )
         REQUIRE(found_ws_link_obj != links.end());
         std::string ws_url = (*found_ws_link_obj)["href"];
 
-        connect_via_ws(ws_url, [&](client::connection_ptr con, std::vector<json>* received_messages_ptr)
+        connect_via_ws(ws_url, [&](auto con, std::vector<json>* received_messages_ptr)
         {
             std::vector<json>& received_messages = *received_messages_ptr;
 
-            con->send(json{{"messageType", "requestAction"}, {"data", {{"test-action", {{"input", 42}}}}}}.dump());
+            con->sendText(json{{"messageType", "requestAction"}, {"data", {{"test-action", {{"input", 42}}}}}}.dump());
             std::this_thread::sleep_for(std::chrono::milliseconds(100));
 
             REQUIRE(received_messages.size() == 3);

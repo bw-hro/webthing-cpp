@@ -14,7 +14,7 @@
         "ssl"
       ]
     },
-    "websocketpp"
+    "ixwebsocket"
   ],
   "overrides": [
     {

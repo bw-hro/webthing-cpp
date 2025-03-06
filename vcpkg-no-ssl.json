@@ -9,7 +9,7 @@
     "mdns",
     "nlohmann-json",
     "uwebsockets",
-    "websocketpp"
+    "ixwebsocket"
   ],
   "overrides": [
     {
