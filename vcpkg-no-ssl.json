@@ -8,7 +8,8 @@
     "json-schema-validator",
     "mdns",
     "nlohmann-json",
-    "uwebsockets"
+    "uwebsockets",
+    "websocketpp"
   ],
   "overrides": [
     {

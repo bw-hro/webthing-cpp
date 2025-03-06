@@ -31,7 +31,6 @@ if %errorlevel% equ 0 (
 )
 echo Project architecture: %build_arch%
 
-
 echo %* | find /i "with_ssl" > nul
 if %errorlevel% equ 0 (
     set "ssl_support=ON"
@@ -43,7 +42,31 @@ if %errorlevel% equ 0 (
 echo Project SSL support: %ssl_support%
 copy %vcpkg_file% vcpkg.json
 
-cmake -B "%build_dir%" -S . -DWT_WITH_SSL=%ssl_support% -DCMAKE_BUILD_TYPE=%build_type% -DCMAKE_TOOLCHAIN_FILE="%toolchain_file%" -DVCPKG_TARGET_TRIPLET="%vcpkg_triplet%" -G "Visual Studio 17 2022" -A "%build_arch%"
+echo %* | find /i "without_tests" > nul
+if %errorlevel% equ 0 (
+    set "build_tests=OFF"
+) else (
+    set "build_tests=ON"
+)
+echo Project build tests: %build_tests%
+
+echo %* | find /i "skip_tests" > nul
+if %errorlevel% equ 0 (
+    set "skip_tests=ON"
+) else (
+    set "skip_tests=OFF"
+)
+echo Project skip tests: %skip_tests%
+
+echo %* | find /i "without_examples" > nul
+if %errorlevel% equ 0 (
+    set "build_examples=OFF"
+) else (
+    set "build_examples=ON"
+)
+echo Project build examples: %build_examples%
+
+cmake -B "%build_dir%" -S . -DWT_BUILD_TESTS=%build_tests% -DWT_SKIP_TESTS=%skip_tests% -DWT_BUILD_EXAMPLES=%build_examples% -DWT_WITH_SSL=%ssl_support% -DCMAKE_BUILD_TYPE=%build_type% -DCMAKE_TOOLCHAIN_FILE="%toolchain_file%" -DVCPKG_TARGET_TRIPLET="%vcpkg_triplet%" -G "Visual Studio 17 2022" -A "%build_arch%"
 cmake --build "%build_dir%" --config "%build_type%" --parallel %NUMBER_OF_PROCESSORS%
 
 ctest --test-dir "%build_dir%\test\"

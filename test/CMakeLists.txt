@@ -1,12 +1,14 @@
 find_package(Catch2 3 REQUIRED)
 find_package(cpr CONFIG REQUIRED)
+find_package(websocketpp CONFIG REQUIRED)
 
 add_executable(tests
     "catch2/unit-tests/action_tests.cpp"
     "catch2/unit-tests/event_tests.cpp"
     "catch2/unit-tests/json_validator_tests.cpp"
     "catch2/unit-tests/property_tests.cpp"
-    "catch2/unit-tests/server_tests.cpp"
+    "catch2/unit-tests/server_http_tests.cpp"
+    "catch2/unit-tests/server_ws_tests.cpp"
     "catch2/unit-tests/storage_tests.cpp"
     "catch2/unit-tests/thing_tests.cpp"
     "catch2/unit-tests/utils_tests.cpp"

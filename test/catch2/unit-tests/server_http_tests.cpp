@@ -9,7 +9,7 @@
 
 using namespace bw::webthing;
 
-void test_running_server(WebThingServer::Builder& builder, std::function<void (WebThingServer*, const std::string&)> test_callback)
+inline void test_running_server(WebThingServer::Builder& builder, std::function<void (WebThingServer*, const std::string&)> test_callback)
 {
     logger::set_level(log_level::trace);
     auto server = builder.build();
@@ -40,7 +40,7 @@ void test_running_server(WebThingServer::Builder& builder, std::function<void (W
     }
 };
 
-TEST_CASE( "It can host a single thing", "[server]" )
+TEST_CASE( "It can host a single thing", "[server][http]" )
 {
     auto thing = make_thing("uri:test:1", "single-thing");
     link_property(thing, "brightness", 50, {
@@ -102,7 +102,7 @@ TEST_CASE( "It can host a single thing", "[server]" )
     });
 }
 
-TEST_CASE( "It can host multiple things", "[server]" )
+TEST_CASE( "It can host multiple things", "[server][http]" )
 {
     auto thing_a = make_thing("uri:test:a", "thing-a");
     
@@ -205,7 +205,7 @@ TEST_CASE( "It can host multiple things", "[server]" )
     });
 }
 
-TEST_CASE( "It handles invalid requests", "[server]" )
+TEST_CASE( "It handles invalid requests", "[server][http]" )
 {
     Thing thing("uri:test", "single-thing");
     auto thing_container = SingleThing(&thing);
@@ -227,7 +227,7 @@ TEST_CASE( "It handles invalid requests", "[server]" )
     });
 }
 
-TEST_CASE( "It supports preflight requests", "[server]" )
+TEST_CASE( "It supports preflight requests", "[server][http]" )
 {
     Thing thing("uri:test", "single-thing");
     auto thing_container = SingleThing(&thing);
@@ -240,7 +240,7 @@ TEST_CASE( "It supports preflight requests", "[server]" )
     });
 }
 
-TEST_CASE( "It redirects urls with trailing slash to corresponding url without trailing slash", "[server]" )
+TEST_CASE( "It redirects urls with trailing slash to corresponding url without trailing slash", "[server][http]" )
 {
     Thing thing("uri:test", "single-thing");
     auto thing_container = SingleThing(&thing);
@@ -254,7 +254,7 @@ TEST_CASE( "It redirects urls with trailing slash to corresponding url without t
     });
 }
 
-TEST_CASE( "It supports custom host name", "[server]" )
+TEST_CASE( "It supports custom host name", "[server][http]" )
 {
     Thing thing("uri:test", "single-thing");
     auto thing_container = SingleThing(&thing);
@@ -290,7 +290,7 @@ TEST_CASE( "It supports custom host name", "[server]" )
     });
 }
 
-TEST_CASE( "It supports custom base path", "[server]" )
+TEST_CASE( "It supports custom base path", "[server][http]" )
 {
     Thing thing("uri:test", "single-thing");
     auto thing_container = SingleThing(&thing);
@@ -308,7 +308,7 @@ TEST_CASE( "It supports custom base path", "[server]" )
     });
 }
 
-TEST_CASE( "It offers REST api for actions", "[server]" )
+TEST_CASE( "It offers REST api for actions", "[server][http]" )
 {
     auto thing = make_thing("uri:test:1", "single-thing");
 
@@ -435,7 +435,7 @@ TEST_CASE( "It offers REST api for actions", "[server]" )
     });
 }
 
-TEST_CASE( "It offers REST api for events", "[server]" )
+TEST_CASE( "It offers REST api for events", "[server][http]" )
 {
     auto thing = make_thing("uri:test:1", "single-thing");
     link_event(thing, "count-event", {{"title", "Count Event"}, {"type", "number"}});
@@ -497,7 +497,7 @@ TEST_CASE( "It offers REST api for events", "[server]" )
     });
 }
 
-TEST_CASE( "It supports custom html ui page", "[server]" )
+TEST_CASE( "It supports custom html ui page", "[server][http]" )
 {
     auto thing = make_thing("uri:test:1", "single-thing");
     REQUIRE_FALSE(thing->get_ui_href());

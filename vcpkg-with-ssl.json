@@ -13,7 +13,8 @@
       "features": [
         "ssl"
       ]
-    }
+    },
+    "websocketpp"
   ],
   "overrides": [
     {
