@@ -46,7 +46,6 @@ void connect_via_ws(const std::string& url, std::function<void (ix::WebSocket*, 
 
     ix::WebSocket ws;
     ws.setUrl(url);
-
     ws.setOnMessageCallback([&](const ix::WebSocketMessagePtr& msg)
     {
         if (msg->type == ix::WebSocketMessageType::Message)
@@ -59,25 +58,11 @@ void connect_via_ws(const std::string& url, std::function<void (ix::WebSocket*, 
 
     ws.start();
 
-    std::exception_ptr thread_exception = nullptr;
-
-    try
-    {
-        std::this_thread::sleep_for(std::chrono::milliseconds(10));
-        client_callback(&ws, &messages_received);
-        std::this_thread::sleep_for(std::chrono::milliseconds(10));
-    }
-    catch (...)
-    {
-        thread_exception = std::current_exception();
-    }
+    std::this_thread::sleep_for(std::chrono::milliseconds(100));
+    client_callback(&ws, &messages_received);
+    std::this_thread::sleep_for(std::chrono::milliseconds(10));
 
     ws.stop();
-
-    if (thread_exception)
-    {
-        std::rethrow_exception(thread_exception);
-    }
 }
 
 TEST_CASE( "It can make a single thing via websocket available", "[server][ws]" )
