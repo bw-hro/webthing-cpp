@@ -11,12 +11,22 @@ using namespace bw::webthing;
 
 TEST_CASE( "Webthing thing context is configurable", "[context][thing]" )
 {
-
     auto sut = std::make_shared<Thing>("uri::test.id", "my-test-thing");
     REQUIRE( sut->get_context() == WEBTHINGS_IO_CONTEXT ); // default
 
     sut->set_context("https://some.custom/context");
     REQUIRE( sut->get_context() == "https://some.custom/context" );
+}
+
+TEST_CASE( "Webthing thing validates description of available events", "[event][thing]" )
+{
+    auto types = std::vector<std::string>{"test-type"};
+    auto sut = std::make_shared<Thing>("uri::test.id", "my-test-thing", types, "This is the description of my-test-thing");
+
+    REQUIRE_NOTHROW(sut->add_available_event("test-event-a", {{"description", "Event A"}, {"type","string"}}));
+
+    REQUIRE_THROWS_MATCHES(sut->add_available_event("test-event-b", {"\"JUST AN JSON STRING BUT NO OBJECT\""}),
+    EventError, Catch::Matchers::Message("Event metadata must be encoded as json object."));
 }
 
 TEST_CASE( "Webthing thing stores all published events", "[event][thing]" )
@@ -45,6 +55,17 @@ TEST_CASE( "Webthing thing stores all published events", "[event][thing]" )
     REQUIRE( sut->get_event_descriptions("test-event-b").size() == 1 );
     REQUIRE( sut->get_event_descriptions("test-event-c").size() == 1 );
     REQUIRE( sut->get_event_descriptions("test-event-missing").size() == 0 );
+}
+
+TEST_CASE( "Webthing thing validates description of available actions", "[action][thing]" )
+{
+    auto types = std::vector<std::string>{"test-type"};
+    auto sut = std::make_shared<Thing>("uri::test.id", "my-test-thing", types, "This is the description of my-test-thing");
+
+    REQUIRE_NOTHROW(sut->add_available_action("test-action-a", {{"title", "Action A"}}, nullptr));
+
+    REQUIRE_THROWS_MATCHES(sut->add_available_action("test-action-b", {"\"JUST AN JSON STRING BUT NO OBJECT\""}, nullptr),
+    ActionError, Catch::Matchers::Message("Action metadata must be encoded as json object."));
 }
 
 TEST_CASE( "Webthing things performes actions", "[action][thing]" )
@@ -106,6 +127,12 @@ TEST_CASE( "Webthing things performes actions", "[action][thing]" )
 
     test_thing->remove_action("my-custom-action", "abc-123");
     REQUIRE_FALSE( test_thing->get_action("my-custom-action", "abc-123") );
+
+    // try to perform unavailable action
+    { 
+        FIXED_UUID_SCOPED("ghi-789");
+        REQUIRE_FALSE( test_thing->perform_action("some-unavailable-action", "my-input-string") );
+    }
 }
 
 #ifdef WT_USE_JSON_SCHEMA_VALIDATION

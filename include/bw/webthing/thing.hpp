@@ -132,7 +132,7 @@ public:
         return pds;
     }
 
-    // Get the thing's actions a json array
+    // Get the thing's actions as json array
     // action_name -- Optional action name to get description for
     json get_action_descriptions(std::optional<std::string> action_name = std::nullopt) const
     {
@@ -146,7 +146,7 @@ public:
         return descriptions;
     }
 
-    // Get the thing's events as a json array.
+    // Get the thing's events as json array.
     // event_name -- Optional event name to get description for
     json get_event_descriptions(const std::optional<std::string>& event_name = std::nullopt) const
     {

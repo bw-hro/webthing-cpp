@@ -91,6 +91,7 @@ struct MultipleThings : public ThingContainer{
 
 class WebThingServer
 {
+public:
     struct Builder
     {
         Builder(ThingContainer things)
@@ -133,11 +134,6 @@ class WebThingServer
             return *this;
         }
 
-        Builder& limit_memory()
-        {
-            return *this;
-        }
-
         WebThingServer build()
         {
             return WebThingServer(things_, port_, hostname_, base_path_, 
@@ -160,7 +156,6 @@ class WebThingServer
 
     };
 
-public:
     struct Response
     {
         Response(uWS::HttpRequest* req, uwsHttpResponse* res)
@@ -434,9 +429,7 @@ public:
                             else if(v.is_string())
                                 prop_setter(v.get<std::string>());
                             else if(v.is_number_integer())
-                                prop_setter(v.get<int>());                            
-                            else if(v.is_number_unsigned())
-                                prop_setter(v.get<unsigned int>());                            
+                                prop_setter(v.get<int>());
                             else if(v.is_number_float())
                                 prop_setter(v.get<double>());
                             else
@@ -526,6 +519,16 @@ public:
     std::string get_name() const
     {
         return name;
+    }
+
+    int get_port() const
+    {
+        return port;
+    }
+
+    std::string get_base_path() const
+    {
+        return base_path;
     }
 
     uWebsocketsApp* get_web_server() const
@@ -820,11 +823,9 @@ private:
                     if(v.is_boolean())
                         prop_setter(v.get<bool>());
                     else if(v.is_string())
-                        prop_setter(v.get<std::string>());
+                        prop_setter(v.get<std::string>());                          
                     else if(v.is_number_integer())
                         prop_setter(v.get<int>());                            
-                    else if(v.is_number_unsigned())
-                        prop_setter(v.get<unsigned int>());                            
                     else if(v.is_number_float())
                         prop_setter(v.get<double>());
                     else

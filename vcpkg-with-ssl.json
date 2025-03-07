@@ -1,20 +1,20 @@
 {
   "name": "webthing-cpp",
-  "version-string": "1.1.0",
-  "builtin-baseline": "c82f74667287d3dc386bce81e44964370c91a289",
+  "version-string": "1.2.0",
+  "builtin-baseline": "d5ec528843d29e3a52d745a64b469f810b2cedbf",
   "dependencies": [
     "catch2",
+    "cpr",
     "json-schema-validator",
     "mdns",
     "nlohmann-json",
-    "openssl",
     {
-      "name": "usockets",
+      "name": "uwebsockets",
       "features": [
         "ssl"
       ]
     },
-    "uwebsockets"
+    "ixwebsocket"
   ],
   "overrides": [
     {
@@ -35,7 +35,7 @@
     },
     {
       "name": "uwebsockets",
-      "version": "20.67.0"
+      "version": "20.71.0"
     }
   ]
 }
