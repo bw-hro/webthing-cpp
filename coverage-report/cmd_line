@@ -1,0 +1,1 @@
+genhtml /home/runner/work/webthing-cpp/webthing-cpp/test/../build/filtered_coverage.info -o /home/runner/work/webthing-cpp/webthing-cpp/test/../build/coverage_report --html-prolog /home/runner/work/webthing-cpp/webthing-cpp/test/../build/coverage_report_prolog.html --rc genhtml_hi_limit=80 --rc genhtml_med_limit=60
