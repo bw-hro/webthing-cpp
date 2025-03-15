@@ -5,6 +5,7 @@
 [![CI Ubuntu](https://github.com/bw-hro/webthing-cpp/actions/workflows/ubuntu.yml/badge.svg?branch=master)](https://github.com/bw-hro/webthing-cpp/actions/workflows/ubuntu.yml)
 [![CI Windows](https://github.com/bw-hro/webthing-cpp/actions/workflows/windows.yml/badge.svg?branch=master)](https://github.com/bw-hro/webthing-cpp/actions/workflows/windows.yml)
 [![CI macOS](https://github.com/bw-hro/webthing-cpp/actions/workflows/macos.yml/badge.svg?branch=master)](https://github.com/bw-hro/webthing-cpp/actions/workflows/macos.yml)
+[![code coverage](https://bw-hro.github.io/webthing-cpp/coverage-report/badge.svg)](https://bw-hro.github.io/webthing-cpp/coverage-report)
 [![GitHub license](https://img.shields.io/badge/license-MIT-blue.svg)](https://raw.githubusercontent.com/bw-hro/webthing-cpp/master/LICENSE.txt)
 [![GitHub Releases](https://img.shields.io/github/release/bw-hro/webthing-cpp.svg)](https://github.com/bw-hro/webthing-cpp/releases)
 [![Vcpkg Version](https://img.shields.io/vcpkg/v/webthing-cpp)](https://vcpkg.link/ports/webthing-cpp)
