@@ -7,7 +7,9 @@ build_dir="$base_dir/build"
 ${base_dir}/build.sh clean debug without_examples
 
 echo "generate coverage.info:"
-lcov --capture --directory . --output-file "${build_dir}/coverage.info"
+lcov --capture --directory . --output-file "${build_dir}/coverage.info" \
+     --no-external --ignore-errors empty --ignore-errors mismatch \
+     --rc geninfo_unexecuted_blocks=1
 
 echo "generate filtered_coverage.info:"
 lcov --extract "${build_dir}/coverage.info" '*/bw/webthing/*' --output-file "${build_dir}/filtered_coverage.info"
