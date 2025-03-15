@@ -51,7 +51,19 @@ Deletes the build folder that cmake creates to ensure a fresh rebuild.
 
 __release__  
 
-Use _Release_ as cmake build type. _Debug_ will be used as default.
+Uses _Release_ as cmake build type. _Debug_ will be used as default. In _Debug_ mode code coverage flags will be set when GNU or Clang compiler is detected.
+
+__without_tests__
+
+Builds the project without tests
+
+__skip_tests__
+
+Skips the execution of project tests
+
+__without_examples__
+
+Builds the project without examples
 
 __with_ssl__  
 
