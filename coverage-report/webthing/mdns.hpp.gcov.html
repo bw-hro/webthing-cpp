@@ -35,7 +35,7 @@
           </tr>
           <tr>
             <td class="headerItem">Test Date:</td>
-            <td class="headerValue">2025-03-15 12:45:00</td>
+            <td class="headerValue">2026-06-24 22:13:13</td>
             <td></td>
             <td class="headerItem">Functions:</td>
             <td class="headerCovTableEntryHi">91.7&nbsp;%</td>
@@ -215,12 +215,12 @@
 <span id="L155"><span class="lineNum">     155</span> <span class="tlaGNC">          15 :         if (getifaddrs(&amp;ifaddr) &gt;= 0)</span></span>
 <span id="L156"><span class="lineNum">     156</span>              :         {</span>
 <span id="L157"><span class="lineNum">     157</span>              :             char addr_buffer[64];</span>
-<span id="L158"><span class="lineNum">     158</span> <span class="tlaGNC">         135 :             for (ifa = ifaddr; ifa; ifa = ifa-&gt;ifa_next)</span></span>
+<span id="L158"><span class="lineNum">     158</span> <span class="tlaGNC">         150 :             for (ifa = ifaddr; ifa; ifa = ifa-&gt;ifa_next)</span></span>
 <span id="L159"><span class="lineNum">     159</span>              :             {</span>
-<span id="L160"><span class="lineNum">     160</span> <span class="tlaGNC">         120 :                 if(!ifa-&gt;ifa_addr)</span></span>
+<span id="L160"><span class="lineNum">     160</span> <span class="tlaGNC">         135 :                 if(!ifa-&gt;ifa_addr)</span></span>
 <span id="L161"><span class="lineNum">     161</span> <span class="tlaUNC tlaBgUNC">           0 :                     continue;</span></span>
 <span id="L162"><span class="lineNum">     162</span>              : </span>
-<span id="L163"><span class="lineNum">     163</span> <span class="tlaGNC tlaBgGNC">         120 :                 if(ifa-&gt;ifa_addr-&gt;sa_family == AF_INET)</span></span>
+<span id="L163"><span class="lineNum">     163</span> <span class="tlaGNC tlaBgGNC">         135 :                 if(ifa-&gt;ifa_addr-&gt;sa_family == AF_INET)</span></span>
 <span id="L164"><span class="lineNum">     164</span>              :                 {</span>
 <span id="L165"><span class="lineNum">     165</span> <span class="tlaGNC">          45 :                     struct sockaddr_in* saddr = (struct sockaddr_in*)ifa-&gt;ifa_addr;</span></span>
 <span id="L166"><span class="lineNum">     166</span> <span class="tlaGNC">          45 :                     if (saddr-&gt;sin_addr.s_addr == htonl(INADDR_LOOPBACK))</span></span>
@@ -229,7 +229,7 @@
 <span id="L169"><span class="lineNum">     169</span> <span class="tlaGNC">          60 :                     ips.push_back(ip.str);</span></span>
 <span id="L170"><span class="lineNum">     170</span>              : </span>
 <span id="L171"><span class="lineNum">     171</span>              :                 }</span>
-<span id="L172"><span class="lineNum">     172</span> <span class="tlaGNC">          75 :                 else if(ifa-&gt;ifa_addr-&gt;sa_family == AF_INET6)</span></span>
+<span id="L172"><span class="lineNum">     172</span> <span class="tlaGNC">          90 :                 else if(ifa-&gt;ifa_addr-&gt;sa_family == AF_INET6)</span></span>
 <span id="L173"><span class="lineNum">     173</span>              :                 {</span>
 <span id="L174"><span class="lineNum">     174</span> <span class="tlaGNC">          30 :                     struct sockaddr_in6* saddr = (struct sockaddr_in6*)ifa-&gt;ifa_addr;</span></span>
 <span id="L175"><span class="lineNum">     175</span>              :                     // Ignore link-local addresses</span>
@@ -637,15 +637,15 @@
 <span id="L577"><span class="lineNum">     577</span>              : </span>
 <span id="L578"><span class="lineNum">     578</span> <span class="tlaGNC tlaBgGNC">          15 :         int first_ipv4 = 1;</span></span>
 <span id="L579"><span class="lineNum">     579</span> <span class="tlaGNC">          15 :         int first_ipv6 = 1;</span></span>
-<span id="L580"><span class="lineNum">     580</span> <span class="tlaGNC">         135 :         for (ifa = ifaddr; ifa; ifa = ifa-&gt;ifa_next) {</span></span>
-<span id="L581"><span class="lineNum">     581</span> <span class="tlaGNC">         120 :             if (!ifa-&gt;ifa_addr)</span></span>
+<span id="L580"><span class="lineNum">     580</span> <span class="tlaGNC">         150 :         for (ifa = ifaddr; ifa; ifa = ifa-&gt;ifa_next) {</span></span>
+<span id="L581"><span class="lineNum">     581</span> <span class="tlaGNC">         135 :             if (!ifa-&gt;ifa_addr)</span></span>
 <span id="L582"><span class="lineNum">     582</span> <span class="tlaUNC tlaBgUNC">           0 :                 continue;</span></span>
-<span id="L583"><span class="lineNum">     583</span> <span class="tlaGNC tlaBgGNC">         120 :             if (!(ifa-&gt;ifa_flags &amp; IFF_UP) || !(ifa-&gt;ifa_flags &amp; IFF_MULTICAST))</span></span>
+<span id="L583"><span class="lineNum">     583</span> <span class="tlaGNC tlaBgGNC">         135 :             if (!(ifa-&gt;ifa_flags &amp; IFF_UP) || !(ifa-&gt;ifa_flags &amp; IFF_MULTICAST))</span></span>
 <span id="L584"><span class="lineNum">     584</span> <span class="tlaGNC">          45 :                 continue;</span></span>
-<span id="L585"><span class="lineNum">     585</span> <span class="tlaGNC">          75 :             if ((ifa-&gt;ifa_flags &amp; IFF_LOOPBACK) || (ifa-&gt;ifa_flags &amp; IFF_POINTOPOINT))</span></span>
+<span id="L585"><span class="lineNum">     585</span> <span class="tlaGNC">          90 :             if ((ifa-&gt;ifa_flags &amp; IFF_LOOPBACK) || (ifa-&gt;ifa_flags &amp; IFF_POINTOPOINT))</span></span>
 <span id="L586"><span class="lineNum">     586</span> <span class="tlaUNC tlaBgUNC">           0 :                 continue;</span></span>
 <span id="L587"><span class="lineNum">     587</span>              : </span>
-<span id="L588"><span class="lineNum">     588</span> <span class="tlaGNC tlaBgGNC">          75 :             if (ifa-&gt;ifa_addr-&gt;sa_family == AF_INET) {</span></span>
+<span id="L588"><span class="lineNum">     588</span> <span class="tlaGNC tlaBgGNC">          90 :             if (ifa-&gt;ifa_addr-&gt;sa_family == AF_INET) {</span></span>
 <span id="L589"><span class="lineNum">     589</span> <span class="tlaGNC">          30 :                 struct sockaddr_in* saddr = (struct sockaddr_in*)ifa-&gt;ifa_addr;</span></span>
 <span id="L590"><span class="lineNum">     590</span> <span class="tlaGNC">          30 :                 if (saddr-&gt;sin_addr.s_addr != htonl(INADDR_LOOPBACK)) {</span></span>
 <span id="L591"><span class="lineNum">     591</span> <span class="tlaGNC">          30 :                     int log_addr = 0;</span></span>
@@ -672,7 +672,7 @@
 <span id="L612"><span class="lineNum">     612</span> <span class="tlaGNC">          30 :                         mdns_log(&quot;Local IPv4 address: &quot; + std::string(addr.str));</span></span>
 <span id="L613"><span class="lineNum">     613</span>              :                     }</span>
 <span id="L614"><span class="lineNum">     614</span>              :                 }</span>
-<span id="L615"><span class="lineNum">     615</span> <span class="tlaGNC">          45 :             } else if (ifa-&gt;ifa_addr-&gt;sa_family == AF_INET6) {</span></span>
+<span id="L615"><span class="lineNum">     615</span> <span class="tlaGNC">          60 :             } else if (ifa-&gt;ifa_addr-&gt;sa_family == AF_INET6) {</span></span>
 <span id="L616"><span class="lineNum">     616</span> <span class="tlaGNC">          15 :                 struct sockaddr_in6* saddr = (struct sockaddr_in6*)ifa-&gt;ifa_addr;</span></span>
 <span id="L617"><span class="lineNum">     617</span>              :                 // Ignore link-local addresses</span>
 <span id="L618"><span class="lineNum">     618</span> <span class="tlaGNC">          15 :                 if (saddr-&gt;sin6_scope_id)</span></span>
@@ -931,7 +931,7 @@
 <span id="L871"><span class="lineNum">     871</span> <span class="tlaGNC">         510 :             FD_ZERO(&amp;readfs);</span></span>
 <span id="L872"><span class="lineNum">     872</span> <span class="tlaGNC">          90 :             for (int isock = 0; isock &lt; num_sockets; ++isock) {</span></span>
 <span id="L873"><span class="lineNum">     873</span> <span class="tlaGNC">          60 :                 if (sockets[isock] &gt;= nfds)</span></span>
-<span id="L874"><span class="lineNum">     874</span> <span class="tlaGNC">          60 :                     nfds = sockets[isock] + 1;</span></span>
+<span id="L874"><span class="lineNum">     874</span> <span class="tlaGNC">          56 :                     nfds = sockets[isock] + 1;</span></span>
 <span id="L875"><span class="lineNum">     875</span> <span class="tlaGNC">          60 :                 FD_SET(sockets[isock], &amp;readfs);</span></span>
 <span id="L876"><span class="lineNum">     876</span>              :             }</span>
 <span id="L877"><span class="lineNum">     877</span>              : </span>
@@ -995,9 +995,9 @@
 <span id="L935"><span class="lineNum">     935</span> <span class="tlaGNC">          15 :         run_requested = false;</span></span>
 <span id="L936"><span class="lineNum">     936</span> <span class="tlaGNC">          15 :     }</span></span>
 <span id="L937"><span class="lineNum">     937</span>              : </span>
-<span id="L938"><span class="lineNum">     938</span> <span class="tlaGNC">         884 :     bool is_running()</span></span>
+<span id="L938"><span class="lineNum">     938</span> <span class="tlaGNC">         876 :     bool is_running()</span></span>
 <span id="L939"><span class="lineNum">     939</span>              :     {</span>
-<span id="L940"><span class="lineNum">     940</span> <span class="tlaGNC">         884 :         return running;</span></span>
+<span id="L940"><span class="lineNum">     940</span> <span class="tlaGNC">         876 :         return running;</span></span>
 <span id="L941"><span class="lineNum">     941</span>              :     }</span>
 <span id="L942"><span class="lineNum">     942</span>              : };</span>
 <span id="L943"><span class="lineNum">     943</span>              : </span>

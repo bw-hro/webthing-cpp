@@ -35,7 +35,7 @@
           </tr>
           <tr>
             <td class="headerItem">Test Date:</td>
-            <td class="headerValue">2025-03-15 12:45:00</td>
+            <td class="headerValue">2026-06-24 22:13:13</td>
             <td></td>
             <td class="headerItem">Functions:</td>
             <td class="headerCovTableEntryHi">81.5&nbsp;%</td>
@@ -230,16 +230,16 @@
 <span id="L170"><span class="lineNum">     170</span> <span class="tlaGNC">         562 :         std::string italic = log_use_color ? &quot;\x1B[1;3m&quot; : &quot;&quot;;</span></span>
 <span id="L171"><span class="lineNum">     171</span>              : </span>
 <span id="L172"><span class="lineNum">     172</span> <span class="tlaGNC">         562 :         timestamp = std::regex_replace(timestamp, std::regex(R&quot;([T])&quot;), &quot; &quot; + dim_off);</span></span>
-<span id="L173"><span class="lineNum">     173</span> <span class="tlaGNC">         562 :         timestamp = dim + std::regex_replace(timestamp, std::regex{R&quot;([\+])&quot;}, &quot; &quot; + dim + &quot;+&quot;);</span></span>
+<span id="L173"><span class="lineNum">     173</span> <span class="tlaGNC">         561 :         timestamp = dim + std::regex_replace(timestamp, std::regex{R&quot;([\+])&quot;}, &quot; &quot; + dim + &quot;+&quot;);</span></span>
 <span id="L174"><span class="lineNum">     174</span>              : </span>
 <span id="L175"><span class="lineNum">     175</span>              :         // regex for time, ip 4/6, MAC, urls (with ports)</span>
 <span id="L176"><span class="lineNum">     176</span> <span class="tlaGNC">         562 :         auto string_colored =  log_use_color ? (color + std::regex_replace(msg, std::regex{R&quot;(&quot;[^&quot;]*&quot;|'[^']*')&quot;}, italic + &quot;$&amp;&quot; + color_clear + color)) : msg;</span></span>
 <span id="L177"><span class="lineNum">     177</span>              : </span>
 <span id="L178"><span class="lineNum">     178</span>              :         // TODO: make log level configurable for THING (notify e, p, a), WEBSOCKET (in, open, close, broadcast), MDNS, Https (REQ (with/without body), RES)</span>
 <span id="L179"><span class="lineNum">     179</span>              : </span>
-<span id="L180"><span class="lineNum">     180</span> <span class="tlaGNC">         562 :         std::ostringstream ss;</span></span>
+<span id="L180"><span class="lineNum">     180</span> <span class="tlaGNC">         561 :         std::ostringstream ss;</span></span>
 <span id="L181"><span class="lineNum">     181</span>              :         ss &lt;&lt; color &lt;&lt; timestamp &lt;&lt; &quot; [&quot; &lt;&lt; &quot;&quot; &lt;&lt; std::this_thread::get_id() &lt;&lt; &quot;&quot; &lt;&lt; &quot;] &quot; &lt;&lt;</span>
-<span id="L182"><span class="lineNum">     182</span> <span class="tlaGNC">         562 :         dim_off &lt;&lt; level_str &lt;&lt; dim  &lt;&lt; &quot; -- &quot; &lt;&lt; dim_off &lt;&lt; string_colored &lt;&lt; color_clear;</span></span>
+<span id="L182"><span class="lineNum">     182</span> <span class="tlaGNC">         559 :         dim_off &lt;&lt; level_str &lt;&lt; dim  &lt;&lt; &quot; -- &quot; &lt;&lt; dim_off &lt;&lt; string_colored &lt;&lt; color_clear;</span></span>
 <span id="L183"><span class="lineNum">     183</span>              : </span>
 <span id="L184"><span class="lineNum">     184</span> <span class="tlaGNC">         562 :         std::lock_guard&lt;std::mutex&gt; lg(logger::log_mutex);</span></span>
 <span id="L185"><span class="lineNum">     185</span> <span class="tlaGNC">         562 :         switch (level)</span></span>
