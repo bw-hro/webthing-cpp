@@ -66,7 +66,7 @@ if %errorlevel% equ 0 (
 )
 echo Project build examples: %build_examples%
 
-cmake -B "%build_dir%" -S . -DWT_BUILD_TESTS=%build_tests% -DWT_SKIP_TESTS=%skip_tests% -DWT_BUILD_EXAMPLES=%build_examples% -DWT_WITH_SSL=%ssl_support% -DCMAKE_BUILD_TYPE=%build_type% -DCMAKE_TOOLCHAIN_FILE="%toolchain_file%" -DVCPKG_TARGET_TRIPLET="%vcpkg_triplet%" -G "Ninja" -A "%build_arch%"
+cmake -B "%build_dir%" -S . -DWT_BUILD_TESTS=%build_tests% -DWT_SKIP_TESTS=%skip_tests% -DWT_BUILD_EXAMPLES=%build_examples% -DWT_WITH_SSL=%ssl_support% -DCMAKE_BUILD_TYPE=%build_type% -DCMAKE_TOOLCHAIN_FILE="%toolchain_file%" -DVCPKG_TARGET_TRIPLET="%vcpkg_triplet%" -G "Visual Studio 18 2026" -A "%build_arch%"
 cmake --build "%build_dir%" --config "%build_type%" --parallel %NUMBER_OF_PROCESSORS%
 
 ctest --test-dir "%build_dir%\test\"
