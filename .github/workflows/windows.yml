@@ -19,6 +19,11 @@ jobs:
       with:
         python-version: '3.x'
 
+    - name: List CMake capabilities
+      shell: cmd
+      run: |
+        cmake --help    
+
     - name: Setup MSBuild
       uses: microsoft/setup-msbuild@v2
 
